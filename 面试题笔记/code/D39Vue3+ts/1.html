@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ts</title>
+    <script src="js/hello.js"></script>
+</head>
+<body>
+    <script>
+        // alertName();
+
+        // let sym1 = Symbol('123');
+        // let youxi = {
+        //     name: '狼人杀',
+        //     [Symbol('say')]: function () {
+        //         console.log('发言');
+        //         return 123
+        //     },
+        //     [Symbol('zibao')]: function () {
+        //         console.log('ddd')
+        //     },
+        //     [sym1]: function() {
+        //         return 120000;
+        //     }
+        // }
+
+        // console.log(youxi)
+        // console.log(youxi[Symbol('zibao')]);
+        // console.log(youxi[sym1]());
+
+        // const sym = Symbol('foo');
+        // console.log(sym);
+        // console.log(sym.toString())
+        // console.log(sym.description);
+
+        // let game = {};
+
+        // let methods = {
+        //     up: Symbol(),
+        //     down: Symbol()
+        // }
+
+        // game[methods.up] = function () {
+        //     console.log('改变形状');
+        // }
+
+        // game[methods.down] = function () {
+        //     console.log('123')
+        // }
+
+        // game[methods.up]();
+        
+        let sys1 = Symbol('foo');
+        let sys2 = Symbol.for('foo');
+        console.log(sys1 === sys2);
+
+        let sys3 = Symbol.for('too');
+        let sys4 = Symbol.for('too');
+        console.log(sys3 === sys4);
+
+        let x = '123';
+        let y = '12312aaa';
+        y.replace('a', 'xxx');
+        console.log(y);
+        console.log(y.replace('a', 'xxx'));
+
+    </script>
+</body>
+</html>
