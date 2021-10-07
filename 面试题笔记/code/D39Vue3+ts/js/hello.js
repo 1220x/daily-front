@@ -1,5 +1,20 @@
 "use strict";
 // ---- 布尔型 ----
+var __extends = (this && this.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
 var isDone = false;
 console.log(isDone);
 // 报错
@@ -168,3 +183,81 @@ var Days;
 ;
 console.log(Days[0] === 'Sun');
 console.log(Days['Sun'] === 0);
+// ---- 类 ----
+// class Animal {
+//     public name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+// let a = new Animal('Tom');
+// console.log(a.name);    // Tom
+// a.name = 'Jack';
+// console.log(a.name);    // Jack
+// 外部访问private属性
+// class Animal {
+//     private name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+// let a = new Animal('Tom');
+// console.log(a.name);
+// a.name = 'Jack';
+// console.log(a.name);
+// 子类中访问private属性
+// class Animal {
+//     protected name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+// class Cat extends Animal {
+//     constructor(name: any) {
+//         super(name);
+//         console.log(this.name);
+//     }
+// }
+// let cat = new Cat('cat...');
+// 参数属性
+// class Animal {
+//     public constructor(public name: any) {
+//     }
+// }
+// readonly
+// class Animal {
+//     readonly name;
+//     public constructor(name: any) {
+//         this.name = name;
+//         console.log(this.name);
+//     }
+// }
+// let dog = new Animal('dog');
+// console.log(dog.name);
+// dog.name = 'dog111';
+// console.log(dog.name);
+// ---- 抽象类 ----
+var Animal = /** @class */ (function () {
+    function Animal(name) {
+        this.name = name;
+    }
+    ;
+    return Animal;
+}());
+var Cat = /** @class */ (function (_super) {
+    __extends(Cat, _super);
+    function Cat() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Cat.prototype.eat = function () {
+        console.log(this.name + " is eating");
+    };
+    ;
+    // 实现抽象父类的方法
+    Cat.prototype.sayHi = function () {
+        console.log(this.name + " is sayHi to ypu");
+    };
+    return Cat;
+}(Animal));
+var cat = new Cat('cat333');
+cat.sayHi();

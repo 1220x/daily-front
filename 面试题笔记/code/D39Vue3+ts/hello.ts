@@ -252,3 +252,90 @@ enum Days { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
 
 console.log(Days[0] === 'Sun');
 console.log(Days['Sun'] === 0);
+
+// ---- 类 ----
+// class Animal {
+//     public name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+
+// let a = new Animal('Tom');
+// console.log(a.name);    // Tom
+// a.name = 'Jack';
+// console.log(a.name);    // Jack
+
+// 外部访问private属性
+// class Animal {
+//     private name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+
+// let a = new Animal('Tom');
+// console.log(a.name);
+// a.name = 'Jack';
+// console.log(a.name);
+
+// 子类中访问private属性
+// class Animal {
+//     protected name;
+//     public constructor(name: any) {
+//         this.name = name;
+//     }
+// }
+
+// class Cat extends Animal {
+//     constructor(name: any) {
+//         super(name);
+//         console.log(this.name);
+//     }
+// }
+
+// let cat = new Cat('cat...');
+
+// 参数属性
+// class Animal {
+//     public constructor(public name: any) {
+        
+//     }
+// }
+
+// readonly
+// class Animal {
+//     readonly name;
+//     public constructor(name: any) {
+//         this.name = name;
+//         console.log(this.name);
+//     }
+// }
+
+// let dog = new Animal('dog');
+// console.log(dog.name);
+// dog.name = 'dog111';
+// console.log(dog.name);
+
+
+// ---- 抽象类 ----
+abstract class Animal {
+    public name;
+    public constructor(name: any) {
+        this.name = name;
+    };
+    public abstract sayHi(): any;
+}
+
+class Cat extends Animal {
+    public eat() {
+        console.log(`${ this.name } is eating`);
+    };
+    // 实现抽象父类的方法
+    public sayHi() {
+        console.log(`${ this.name } is sayHi to ypu`);
+    }
+}
+
+let cat = new Cat('cat333');
+cat.sayHi();
