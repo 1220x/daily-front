@@ -339,3 +339,11 @@ class Cat extends Animal {
 
 let cat = new Cat('cat333');
 cat.sayHi();
+
+// ---- 元组 ----
+// let x: [string, number];
+// x = ['hello', 100];
+
+// x[5] = 'wolrd';
+
+// console.log(x);
