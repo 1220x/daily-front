@@ -174,11 +174,11 @@ function ajax(config: Config) {
     }
 }
 
-ajax({
-    type: 'get',
-    url: 'http://127.0.0.1:2000/home?page=1',
-    dataType: 'josn'
-})
+// ajax({
+//     type: 'get',
+//     url: 'http://127.0.0.1:2000/home?page=1',
+//     dataType: 'josn'
+// })
 
 // ---- 数组 ----
 let tsArr: number[] = [1, 2, 4, 3]
@@ -245,3 +245,10 @@ function playBaketball(name: string, age?: number) {
 
 playBaketball('YaoMing', 28);
 playBaketball('James', 28);
+
+// ---- 枚举 ----
+
+enum Days { Sun, Mon, Tue, Wed, Thu, Fri, Sat };
+
+console.log(Days[0] === 'Sun');
+console.log(Days['Sun'] === 0);

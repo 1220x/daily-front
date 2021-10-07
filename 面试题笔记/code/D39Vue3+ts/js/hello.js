@@ -108,11 +108,11 @@ function ajax(config) {
         }
     };
 }
-ajax({
-    type: 'get',
-    url: 'http://127.0.0.1:2000/home?page=1',
-    dataType: 'josn'
-});
+// ajax({
+//     type: 'get',
+//     url: 'http://127.0.0.1:2000/home?page=1',
+//     dataType: 'josn'
+// })
 // ---- 数组 ----
 var tsArr = [1, 2, 4, 3];
 console.log(tsArr);
@@ -154,3 +154,17 @@ function playBaketball(name, age) {
 ;
 playBaketball('YaoMing', 28);
 playBaketball('James', 28);
+// ---- 枚举 ----
+var Days;
+(function (Days) {
+    Days[Days["Sun"] = 0] = "Sun";
+    Days[Days["Mon"] = 1] = "Mon";
+    Days[Days["Tue"] = 2] = "Tue";
+    Days[Days["Wed"] = 3] = "Wed";
+    Days[Days["Thu"] = 4] = "Thu";
+    Days[Days["Fri"] = 5] = "Fri";
+    Days[Days["Sat"] = 6] = "Sat";
+})(Days || (Days = {}));
+;
+console.log(Days[0] === 'Sun');
+console.log(Days['Sun'] === 0);
