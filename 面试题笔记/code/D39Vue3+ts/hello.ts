@@ -192,3 +192,56 @@ interface NumberArray {
 }
 let interfaceArray: NumberArray = [1, 2, 4];
 console.log(interfaceArray);
+
+
+// ---- 函数 ----
+
+// 函数默认值
+function buildName(firstName: string = 'tom', lastName: string) {
+    return firstName + ' ' + lastName;
+}
+
+let tomCat = buildName(undefined, 'cat');
+console.log(tomCat);
+
+// 重载
+// function reverse(x: number | string): number | string {
+//     if (typeof x === 'number') {
+//         return Number(x.toString().split('').reverse().join(''));
+//     } else if (typeof x === 'string') {
+//         return x.split('').reverse().join('');
+//     }
+
+//     return '';
+// }
+
+function reverse(x: number): number;
+function reverse(x: string): string;
+function reverse(x: number | string): number | string {
+    if (typeof x === 'number') {
+        return Number(x.toString().split('').reverse().join(''));
+    } else if (typeof x === 'string') {
+        return x.split('').reverse().join('');
+    }
+
+    return '';
+}
+
+
+function playBaketball(name: 'YaoMing', age: number): void;
+function playBaketball(name: 'Kobe', age?: number): void;
+function playBaketball(name: 'James', age?: number): void;
+function playBaketball(name: string, age?: number) {
+    if (name === 'YaoMing' && age && age > 25) {
+        console.log('good Center');
+    } else if (name === 'Kobe') {
+        console.log('good Guard');
+    } else if (name === 'James') {
+        console.log('good Forward')
+    } else {
+        console.log('ordinary basketball player');
+    }
+};
+
+playBaketball('YaoMing', 28);
+playBaketball('James', 28);
