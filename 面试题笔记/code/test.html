@@ -9,14 +9,35 @@
 <body>
     
     <script>
-        let funcName = 'say'
-        let obj = {
-            [funcName]() {
-                console.log('说出来吧////')
+        let k = 5;
+        var count = 0;
+
+        function main(arr, k) {
+            partition(arr, 0, arr.length - 1, k);
+        }
+
+        function partition(arr, left, right, k) {
+            
+            while(left < right) {
+                let mid = left + ((right - left) >> 1);
+                console.log(mid)
+                if (arr[mid] < k) {
+                    left = mid - 1;
+                    partition(arr, left, right, k);
+                } else if (arr[mid] > k) {
+                    right = mid + 1;
+                    partition(arr, left, right, k);
+                } else {
+                    console.log('找到了')
+                    count++;
+                    break;
+                }
             }
         }
 
-        obj.say();
+        let arr = [1, 2, 3, 4, 5, 5, 5];
+        main(arr, k);
+        console.log(count);
 
     </script>
 </body>

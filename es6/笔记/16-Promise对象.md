@@ -198,3 +198,56 @@ const p = Promise.race([p1, p2, p3]);
 - 只关心有没有结束，不关心执行的结果 - Promise.allSettled()方法。
 
 ## Promise.any()
+- 接收一组Promise实例作为参数，包装成一个新的Promise实例，只要参数有一个`fulfilled`状态，包装实例就会变成`fulfilled`。如果所有参数实例都变成`rejected`，包装实例就会变成`rejected`状态。
+- 当.any()状态变为rejected时，抛出的错误，是一个特殊的错误，是每一个成员对应一个被`rejected`的操作所抛出的错误。
+
+## Promise.resolve()
+- 将现有对象转为Promise对象。
+```
+Promise.resolve('foo')
+// 等价于
+new Promise((resolve) => resolve('foo'))
+```
+- 参数：
+    - 参数是一个Promise实例
+        - 原封不动的返回这个对象
+    - 参数是一个`thenable`对象 - 有`then`方法的对象
+        - 将这个参数转为Promise对象，然后立即执行里面的`then`方法
+    - 参数不是具有`then`方法的对象，或根本就不是对象
+        - 返回一个新的Promise对象，状态为`resolved`
+    - 不带有任何参数
+        - 直接返回一个`resolved`状态Promise对象
+- **立即`resolve()`的Promise对象，是在本轮‘事件循环’的结束时执行，而不是在下一轮‘事件循环’的开始时。**
+
+
+## Promise.rejected()
+- 返回一个新的 Promise实例，该实例的状态为`rejected`
+```
+Promise.reject('出错了')
+// 等同于
+new Promise((resolve, reject) => reject('出错了'));
+
+```
+- **该方法的参数，会原封不动的作为`reject`**
+
+## Promise.try()
+- 在不知道或不想区分，函数`f`是同步还是异步的情况下，但是想用Promise来处理它，因为这样就可以不管`f`是否包含异步操作，都用`then`方法指定下一步流程，用`catch`方法处理抛出的错误。
+- 事实上，该方法模拟的就是`try...catch`代码块，就像`promise.catch`模拟是`catch`代码块
+
+
+
+# Promise面试题节选
+- 了解Promise吗
+    - Promise是一种异步编程解决方案
+- Promise解决的痛点是什么？
+    - 回调地狱：代码臃肿、可读性差、难以维护、易产生bug
+- Promise解决的痛点还有其他方法可以解决吗？如果有，请举例。
+- Promise如何使用？
+- Promise常用的方法有哪些？他们的作用是什么？
+    - 
+- Promise在事件循环中执行过程是怎么样的？
+- Promise的业界实现有哪些？
+    - Q、bluebird（号称是运行最快的类库）、
+- 能不能手写一个Promise的pplyfill？
+## Promise的出现
+- 为了解决回调地狱
