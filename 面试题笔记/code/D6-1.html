@@ -40,6 +40,15 @@
                 say: obj1.say()
             }
 
+            /**
+             * console.log('undefined') ----  不管打印什么值，返回的都是undefined
+             * !!"" ---  false
+             * !!"" + "1" --- 'false1'
+             * typeof null --- 'object'
+             * typeof 'object' --- 'string'
+             * !!length --- true
+             * **/
+
             if (console.log('undefined') || (!!"" + "1" && typeof typeof null && !!length)) {
                 // 走这里
                 setTimeout(() => {
