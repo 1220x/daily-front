@@ -5,39 +5,76 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试问题</title>
+    <script src="https://unpkg.com/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+
+    <style>
+        .line {
+            width: 100px;
+            height: 1px;
+            background-color: #ff0000;
+            transform: scale(.5);
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="line"></div>
+    <div id="app"></div>
+
     <script>
-        let k = 5;
-        var count = 0;
+        function dynamicPropsFn (route) {
+            const now = new Date()
 
-        function main(arr, k) {
-            partition(arr, 0, arr.length - 1, k);
-        }
-
-        function partition(arr, left, right, k) {
-            
-            while(left < right) {
-                let mid = left + ((right - left) >> 1);
-                console.log(mid)
-                if (arr[mid] < k) {
-                    left = mid - 1;
-                    partition(arr, left, right, k);
-                } else if (arr[mid] > k) {
-                    right = mid + 1;
-                    partition(arr, left, right, k);
-                } else {
-                    console.log('找到了')
-                    count++;
-                    break;
-                }
+            return {
+                name: (now.getFullYear() + parseInt(route.params.years)) + '!'
             }
         }
 
-        let arr = [1, 2, 3, 4, 5, 5, 5];
-        main(arr, k);
-        console.log(count);
+        let Hello = {
+            template: `<div>hello world!!!</div>`,
+            props: {
+                name: {
+                    type: [String, Boolean],
+                    default: null
+                }
+            },
+            created() {
+                console.log(this.name);
+            }
+        }
+
+
+        const router = new VueRouter({
+            mode: 'hash',
+            // base: __dirname,
+            routes: [
+                { path: '/', component: Hello }, // No props, no nothing
+                { path: '/hello/:name', component: Hello, props: true }, // Pass route.params to props
+                { path: '/static', component: Hello, props: { name: 'world' }}, // static values
+                { path: '/dynamic/:years', component: Hello, props: dynamicPropsFn }, // custom logic for mapping between route and props
+                { path: '/attrs', component: Hello, props: { name: false }}
+            ]
+        })
+
+        new Vue({
+            router,
+            template: `
+                <div id="app">
+                <h1>Route props</h1>
+                <ul>
+                    <li><router-link to="/">/</router-link></li>
+                    <li><router-link to="/hello/you">/hello/you</router-link></li>
+                    <li><router-link to="/static">/static</router-link></li>
+                    <li><router-link to="/dynamic/1">/dynamic/1</router-link></li>
+                    <li><router-link to="/attrs">/attrs</router-link></li>
+                </ul>
+                <router-view class="view" foo="123"></router-view>
+                </div>
+            `,
+            component: {
+                Hello
+            }
+            }).$mount('#app')
 
     </script>
 </body>
