@@ -1,81 +1,164 @@
 <!DOCTYPE html>
-<html lang="ch">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>测试问题</title>
-    <script src="https://unpkg.com/vue/dist/vue.js"></script>
-    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
-
     <style>
-        .line {
+        * {
+            margin: 0;
+            padding: 0;
+        }
+        html,body {
+            width: 100%;
+            height: 100%;
+        }
+
+
+        .transition {
             width: 100px;
-            height: 1px;
+            height: 200px;
+            border: 1px solid #ff0000;
+            transition: width 1s;
+        }
+
+        .transition:hover {
+            width: 400px;
+        }
+
+        .animation {
+            margin-top: 30px;
+            width: 100px;
+            height: 200px;
+            border: 1px solid #ff0000;
+            animation: scaleTo 4s infinite;
+        }
+
+        @keyframes scaleTo {
+            from {
+                transform: scale(1);
+            }
+
+            to {
+                transform: scale(2);
+            }
+        }
+
+        .text {
+            width: 100px;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 1;
+            overflow: hidden;
+        }
+
+
+
+        .parent {
+            height: 200px;
+            width: 200px;
+            margin-top: 30px;
             background-color: #ff0000;
-            transform: scale(.5);
+            /* border: 1px solid #ff00ff; */
+            overflow: visible;
+        }
+
+        .son {
+            height: 100px;
+            width: 100px;
+            background-color: #ff00ff;
+            /* border: 1px solid #00ff00; */
+            margin-top: 70px;
+        }
+
+        .text-over {
+            width: 80px;
+            /* text-overflow: clip; */
+            text-overflow: ellipsis;
+            overflow: hidden;
+            border: 1px solid #ff0000;
+        }
+
+
+        .box {
+            height: 100%;
+        }
+
+        .left {
+            float: left;
+            width: 200px;
+            height: 100%;
+            background-color: #ff0000;
+        }
+
+        .right {
+            float: right;
+            width: 200px;
+            height: 100%;
+            background-color: #00ff00;
+        }
+
+        .center {
+            height: 100%;
+            margin-left: 200px;
+            margin-right: 200px;
+            background-color: #ff00ff;
+        }
+
+        .flex-box {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .left-box {
+            height: 100%;
+            flex: 0 0 200px;
+            background-color: #ff0000;
+        }
+
+        .center-box {
+            flex: 1 1;
+            height: 100%;
+            background-color: #ff00ff;
+        }
+
+        .right-box {
+            flex: 0 0 200px;
+            height: 100%;
+            background-color: #0000ff;
+        }
+
+        .after:after {
+            content: "我是伪元素";
+            color: #ff0000;
         }
     </style>
 </head>
 <body>
-    <div class="line"></div>
-    <div id="app"></div>
+    <!-- <div class="transition"></div> -->
+    <!-- <div class="animation"></div> -->
+    <!-- <div class="text">额一起玩的hi耦合的将尽一切饿哦晚上打卡机京东购物dhks21938902374902dasjkxdnhqwdyik轻轨饿哦IQ我</div> -->
+<!-- 
+    <div class="parent">
+        <div class="son"></div>
+    </div> -->
 
-    <script>
-        function dynamicPropsFn (route) {
-            const now = new Date()
+    <!-- <div class="text-over">hdqowiejiow</div> -->
 
-            return {
-                name: (now.getFullYear() + parseInt(route.params.years)) + '!'
-            }
-        }
+    <!-- <div class="box">
+        <div class="left"></div>
+        <div class="right"></div>
+        <div class="center"></div>
+    </div> -->
 
-        let Hello = {
-            template: `<div>hello world!!!</div>`,
-            props: {
-                name: {
-                    type: [String, Boolean],
-                    default: null
-                }
-            },
-            created() {
-                console.log(this.name);
-            }
-        }
+    <!-- <div class="flex-box">
+        <div class="left-box"></div>
+        <div class="center-box"></div>
+        <div class="right-box"></div>
+    </div> -->
 
-
-        const router = new VueRouter({
-            mode: 'hash',
-            // base: __dirname,
-            routes: [
-                { path: '/', component: Hello }, // No props, no nothing
-                { path: '/hello/:name', component: Hello, props: true }, // Pass route.params to props
-                { path: '/static', component: Hello, props: { name: 'world' }}, // static values
-                { path: '/dynamic/:years', component: Hello, props: dynamicPropsFn }, // custom logic for mapping between route and props
-                { path: '/attrs', component: Hello, props: { name: false }}
-            ]
-        })
-
-        new Vue({
-            router,
-            template: `
-                <div id="app">
-                <h1>Route props</h1>
-                <ul>
-                    <li><router-link to="/">/</router-link></li>
-                    <li><router-link to="/hello/you">/hello/you</router-link></li>
-                    <li><router-link to="/static">/static</router-link></li>
-                    <li><router-link to="/dynamic/1">/dynamic/1</router-link></li>
-                    <li><router-link to="/attrs">/attrs</router-link></li>
-                </ul>
-                <router-view class="view" foo="123"></router-view>
-                </div>
-            `,
-            component: {
-                Hello
-            }
-            }).$mount('#app')
-
-    </script>
+    <div class="after"></div>
 </body>
 </html>

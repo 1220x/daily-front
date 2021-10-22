@@ -192,21 +192,21 @@
 
 ## 导航守卫
 ### 全局导航守卫
-`router.beforeEach(to, from, next)`
-`router.beforeResolve(to, from, next)`：导航被确认之前，同时在所有组件守卫和异步路由组件被解析之后，解析守卫就被调用。
-`router.beforeAfter(to, from)`：不接受next参数也不会改变导航本身。
+`router.beforeEach(to, from, next)`：可以创建多个，按照创建的顺序来执行。在所有守卫完成之前，一直处于等待状态。另外两个全居守卫也是可以创建多个的。
+`router.beforeResolve(to, from, next)`：路由跳转之前。导航被确认之前，所有`组件内守卫`和`异步路由组件`被解析之后触发，解析守卫就被调用。
+`router.beforeAfter(to, from)`：发生在路由跳转完之后，不接受next参数也不会改变导航本身。
 ### 路由独享守卫
-`router.beforeEnter(to, from, next)`
+`router.beforeEnter(to, from, next)`：只在进入路由时触发，紧跟在`beforeEach`之后触发。
 ### 组件独享守卫
-`router.beforeRouteEnter(to, from, next)`：不能获取组件的实例，支持给next传递回调（只有它支持给next传递回调）。
+`router.beforeRouteEnter(to, from, next)`：不能获取组件的实例，支持给next传递回调（只有它支持给next传递回调）。在`beforeEach`、`beforeEnter`之后执行，此时组件还没有解析完成，在`beforeResolve`和`afterEach`之前触发
 `router.beforeRouteUpdate(to, from, next)`：动态参数路径改变，组件被复用时调用。
 `router.beforeRouteLeave(to, from, next)`：可以获取组件this实例。可以用于：禁止用户在还未保存之前突然离开。
 
 ## 导航解析流程
 - 导航被触发
-- 在失活的组件里面调用`beforeRouteLeave`
-- 调用全局的`beforeEach`
-- 在重用的组件里面调用`beforeRouteUpdate`
+- 在失活的组件里面调用`beforeRouteLeave` - 先离开当前的组件
+- 调用全局的`beforeEach` - 在进入下一个路由之前，会先经过全局的导航钩子
+- 在重用的组件里面调用`beforeRouteUpdate`   - 
 - 在路由配置里面调用`beforeEnter`
 - 解析异步路由组件（路由配置中的，异步路由）
 - 在被激活的组件里面 调用`beforeRouteEnter`
@@ -215,3 +215,46 @@
 - 调用全局的`afterEach`
 - 触发更新
 - 调用`beforeRouteEnter`守卫中传给`next`的回调，创建好的组件实例会作为回调函数的参数传入。
+
+    ![image](../img/路由导航流程.png)
+
+
+## 过渡动效
+- 给所有路由的设置
+    ```
+    <transition>
+        <router-view></router-view>
+    </transition>
+    ```
+- 单个路由的设置
+    ```
+    const Foo = {
+        template: `
+            <transition name="slide">
+                <div></div>
+            </transition>
+        `
+    }
+    ```
+- 具体动画效果的定义
+    ![image](../img/transition.png)
+
+## 路由中的滚动行为
+- 定义路由时的`scrollBehavior`方法来定义滚动行为
+    ```
+    const router = new Router({
+        routes,
+        scrollBehavior: (to, from, savedBehavior) => {
+            // return 期望滚动到的位置
+        }
+    })
+    ```
+    - 第三个参数，当且仅当popState导航才有用，即通过浏览器的前进后退按钮触发的路由变化。
+    - 返回值的格式
+        ```
+        { x: number, y: number }
+
+        { selector: string, offset: { x: number, y: number } }  // selector 滚动到某一个元素的位置（类似锚点定位）
+
+        { selector: string, behavior: 'smooth' }    // 提供原生的平滑的滚动
+        ```
