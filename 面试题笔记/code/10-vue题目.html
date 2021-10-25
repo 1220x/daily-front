@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ch">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue响应式题目</title>
+    <script src="https://vuejs.org/js/vue.min.js"></script>
+</head>
+<body>
+    <div id="app">
+        <div>{{ Math.random() > 0.5 ? a : b }}</div>
+        <p></p>
+        <div>
+            <button @click="changeA">点击修改a的值</button>
+            <button @click="changeB">点击修改b的值</button>
+        </div>
+    </div>
+    <script>
+        new Vue({
+            el: '#app',
+            data() {
+                return {
+                    a: '原始的值 -- a',
+                    b: '原始的值 -- b'
+                }
+            },
+            methods: {
+                changeA() {
+                    this.a = '我是修改后a的值：' + Math.random();
+                    console.log(this.a);
+                },
+                changeB() {
+                    this.b = '我是修改后b的值：' + Math.random();
+                    console.log(this.b);
+                }
+            }
+        })
+    </script>
+</body>
+</html>
