@@ -24,7 +24,7 @@ constructor 方法是类的默认方法，没有显示定义时，会默认添�
 
 实例的属性如果不是显示的定义在其本身（this上），否则全都是定义在原型上（即定义在Class上） - 与ES5是一致的
 
-类的所有实例都共享一个原型对象。可以使用`__proto__`属性来为类添加方法。Object.getPrototype来获取__proto__，不建议直接使用__proto__。
+类的所有实例都共享一个原型对象。可以使用`__proto__`属性来为类添加方法。Object.getPrototypeOf来获取__proto__，不建议直接使用__proto__。
 
 在类的内部，可以使用`get`、`set`关键字。对**某个属性**设置存值函数取值函数，拦截该属性的存取行为。存值函数和取值函数是设置在属性的`Descriptor`对象上的 - Object.getOwnPropertyDescriptor()。
 
