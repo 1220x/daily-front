@@ -70,21 +70,68 @@
 - Vue2内部运行时，是直接执行浏览器API。但这样就会在Vue2的跨端方案中带来问题
 - Vue2响应式并不是真正意义上的代理，而是基于Object.defineProperty（）实现的。这个API并不是代理，而是对某个属性进行拦截，比如 删除数据 就无法监听
 - Option API在代码较多时不好维护
+- 生命周期
+    - vue3中，只有createApp,然后立刻调用mount()才可以进入生命周期。
+    - vue2中，new Vue，但是没有给el，或者没有$mount挂载组件，这是组件的beforeCreate和created依旧会执行。
 
 ## Vue3新特性
 **响应式系统**、**Composition API组合语法**、**新的组件**、**Vite**、**自定义渲染器 - 开发跨端应用**、**RFC机制 - 对Vue源码做贡献**
+
+Vue2中可以在main.js中定义一些Vue.$xxx的全局变量，然后再JS里面使用，Vue3中取消了这种写法。
 
 ### RFC机制
 与代码无关，是Vue团队的工作方式。
 [RFC链接戳这里！](https://github.com/vuejs/rfcs)
 ### 响应式系统
+Vue2：Object.defineProperty() - 拦截某个属性。对于不存在的属性是没有办法进行拦截的，所以Vue2中所有数据都要在data里面声明。
+
+Vue3：Proxy - 真正的代理。拦截的是整个obj，具体obj有什么属性，Proxy并不关心。
 
 ### 自定义渲染器
+Vue2：内部所有模块都是揉在一起的
+
+Vue3：拆包。响应式、编译、运行时全部独立了。
+- Vue2的响应式只服务于Vue，Vue3的响应式就和Vue解耦了，甚至可以再react、node中使用响应式。
+- 渲染逻辑的拆分：`平台无关的渲染逻辑`、`浏览器渲染的API`
+
+### 全部模块使用TypeScript重构
+类型系统，对代码进行限制，代码更健壮。
 
 ### Composition API
+所有的API都是import引入的，没有用到的，打包时会被清理掉
 
+代码复用方便，可以把一个功能的所有的methods，data都封装在一个独立函数里面
+
+return语句，在实际项目中使用`<script setup>`特性可以清除
+
+```
+        // 按需引入 reactive computed
+        const { reactive, computed } = Vue;
+
+        const App = {
+            setup() {
+                const state = reactive({
+                    count: 1
+                })
+
+                function add() {
+                    state.count++;
+                }
+
+                const double = computed(() => state.count*2);
+
+                return { state, add, double };
+            }
+        }
+
+        Vue.createApp(App).mount('#app');
+```
 ### 新的组件
+Fragment：Vue3组件不再要求有一个唯一的根节点，清除了很多无用的占位div。
 
+teleport：允许组件渲染在别的元素内，主要开发弹窗组件的时候特别有用。
+
+Suspense：异步组件，更方便开发有异步请求的组件。
 ### 新一代工程化根据Vite
 
 
