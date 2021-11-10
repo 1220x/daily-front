@@ -601,3 +601,24 @@ Vue3 响应式实现的原理：利用`对象的get和set函数`来进行监听
 - slot插槽，显示组件的子元素
 
 ## Vue中的动画
+- Vue3中使用内置的`transition`组件来实现动画效果
+- `transition`需设置name属性。mode属性
+- 实现动画的原理
+    - enter: v-enter-active
+    ```
+    opacity: 0 - v-enter-from
+    opacity: 1 - v-enter-to 
+    ```
+    - leave: v-leave-active
+    ```
+    opacity: 1 - v-leave-from
+    opacity: 0 - v-leave-to
+    ```
+
+- `transition-group`：
+    - 在v-for渲染列表的场景下，我们使用`transition-group`组件去包裹元素，通过tag属性指定渲染一个元素。
+    - 不仅可以进入和离开动画，还可以改变定位。这个功能新增了`v-move`类
+- 更精准的控制动画
+    - `before-enter`：
+    - `enter`：
+    - `after-enter`：
