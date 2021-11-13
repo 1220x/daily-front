@@ -601,6 +601,7 @@ Vue3 响应式实现的原理：利用`对象的get和set函数`来进行监听
 - slot插槽，显示组件的子元素
 
 ## Vue中的动画
+
 - Vue3中使用内置的`transition`组件来实现动画效果
 - `transition`需设置name属性。mode属性
 - 实现动画的原理
@@ -618,7 +619,253 @@ Vue3 响应式实现的原理：利用`对象的get和set函数`来进行监听
 - `transition-group`：
     - 在v-for渲染列表的场景下，我们使用`transition-group`组件去包裹元素，通过tag属性指定渲染一个元素。
     - 不仅可以进入和离开动画，还可以改变定位。这个功能新增了`v-move`类
-- 更精准的控制动画
+- 更精准的控制动画：在transition组件上使用一下三个方法
     - `before-enter`：
     - `enter`：
-    - `after-enter`：
+    - `after-enter`：动画结束后的钩子函数
+
+## Vuex
+
+### vuex基础
+- 集中式存储管理应用的所有组件的状态
+- 安装：`npm install vux@next`
+- 创建：
+    ```
+    import { createStore } from 'vuex';
+
+    const store = createStore({
+        state() {
+            return {
+                count: 666
+            }
+        },
+        mutations: {
+            add(state) {
+                state.count++;
+            }
+        }
+    })
+    ```
+- 注册：
+    ```
+    import store from './store/index.js';
+    app.use(store);
+    ```
+- 使用：
+    ```
+    import { useStore } from 'vuex';
+    let store = useStore();
+    let count = computed(() => store.state.count)
+
+    function add() {
+        store.commit('add');
+    }
+    ```
+
+### 手写迷你Vuex
+- 创建一个变量store用来存储数据
+- 将这个store包装成响应式数据，并提供给vue组价使用
+- [`provide/inject`来做数据共享](https://v3.cn.vuejs.org/guide/component-provide-inject.html#%E5%A4%84%E7%90%86%E5%93%8D%E5%BA%94%E6%80%A7)
+- 实现: **vue的插件机制 + reactive响应式功能**
+    ```
+    import { inject, reactive } from  'vue';
+
+    const STORE_KEY = '__store__';
+
+    function useStore() {
+        return inject(STORE_KEY)
+    }
+
+    function createStore(options) {
+        return new Store(options);
+    }
+    // Store 类来管理数据，内部使用 _state 来存储数据；mutations来存储 数据修改 的函数
+    class Store {
+        constructor (options) {
+            // 用reactive包装成响应式对象
+            this._state = reactive({
+                data: options.state()
+            })
+            this._mutations = options.mutations
+        }
+
+        get state() {
+            return this._state.data;
+        }
+
+        commit = (type, payload) => {
+            const entry = this._mutations[type];
+            entry && entry(this.state, payload);
+        }
+
+        // 为了让useStore能够正常工作，我们需要给给store增加一个install方法，这个方法会在app.use函数内部执行
+        install (app) {
+            app.provide(STORE_KEY, this);
+        }
+    }
+
+    export { createStore, useStore }
+    ```
+- 使用：为了让useStore能够正常工作，我们需要给给store增加一个install方法，这个方法会在app.use函数内部执行。`app.provide`函数注册给全局的组件
+    ```
+    class Store {
+        //....
+        install(app) {
+            app.provide(STORE_KEY, this)
+        }
+    }
+
+    import store from './gvuex';
+    app.use(store);
+    ```
+
+### Vuex实战
+**vuex就是一个公用版本的ref**
+- 使用getters来实现computed的功能
+- 实际项目中，有很多数据我们都是从网络请求中获取到的。在Vuex中，mutation的设计就是用来实现`同步`的修改数据。如果数据`异步`修改的，我们需要一个新的配置`action`
+    - 同步：mutation
+    - 异步：action - 并不是直接修改数据，而是通过提交mutation的方式去修改数据。调用方式是 `store.dispatch`
+- Vuex的整体逻辑：
+    - Vue的组件负责渲染页面
+    - 组件中的跨页面数据，用state存储
+    - Vue通过actions / mutations 去做数据的修改
+    - `view -> actions -> state -> view`
+- Vuex中所有数据修改都是通过mutations来完成的。
+
+### 下一代Vuex
+- Vuex对TypeScript的类型推导的支持很复杂
+- `Pinia` - 天然对类型推导非常友好。API设计非常接近Vuex5
+
+
+## vue-router
+
+### 前端路由的实现原理
+
+#### hash模式
+- 通过URL中#后面的内容做区分，称之为`hash-router`
+- createWenHashHistory()函数
+- `hashChange`监听变化
+- hash值的变化并不会导致浏览器页面的刷新，只会触发hashChange事件。通过对hasChange事件的监听，我们可以在fn函数内部进行动态的的页面切换。
+    ```
+    window.addEventListener('hashchange', fn);
+    ```
+#### history模式
+- 路由看起来和正常的URL完全一致
+- createWebHistory()函数
+- `popState`监听变化
+- 2014年后，HTML5标准 发布，浏览器多了`pushState`和`replaceState`两个API。通过这两个API，我们可以改变URL的地址，并且浏览器不会向后端发送请求，同时还会触发`popState`事件。
+    ```
+    // 监听到通过pushState修改路由的变化，在fn函数中实现页面的更新
+    window.addEventlistener('popstate', fn);
+    ```
+
+### 手写vue-router - hash模式的路由
+- Router类管理路由
+- creatWenHsahHistory()返回hash模式相关的监听代码。返回当前URL、监听hashchange事件的方法
+- install方法注册实例
+- createRouter方法创建Router实例
+- useRouter方法获取路由实例
+    ```
+    import { ref, inject } from 'vue';
+    import RouterLink from './RouterLink.vue';
+    import RouterView from './RouterView.vue';
+
+    const ROUTER_KEY = '__router__';
+
+    // 创建路由
+    function createRouter(options) {
+        return new Router(options);
+    }
+
+    function useRouter() {
+        return inject(ROUTER_KEY);
+    }
+
+    // 创建 hash 模式的路由
+    function createWebHashHistory() {
+        function bindEvents(fn) {
+            window.addEventListener('hashchange', fn);
+        }
+
+        return {
+            bindEvents,
+            url: window.location.hash.slice(1) || ''
+        }
+    }
+
+    // Router类管理路由
+    class Router {
+        constructor(options) {
+            this.history = options.history;
+            this.routes = options.routes;
+            this.current = ref(this.history.url);
+
+            this.history.bindEvents(() => {
+                this.current.value = window.location.hash.slice(1);
+            })
+        }
+
+        install(app) {
+            app.provide(ROUTER_KEY, this);
+            app.component('router-view', RouterView);
+            app.component('router-link', RouterLink);
+        }
+    }
+
+    export { createRouter, createWebHashHistory,  useRouter }
+
+    ```
+- 注册两个内置组件`router-view`、`router-view`
+    - Router实例中，返回了current，即当前路由地址，是响应式的数据
+    - router-view组件：当current变化时，去匹配current地址对应的组件，然后动态的渲染router-view
+        ```
+        <template>
+            <component :is="comp"></component>
+        </template>
+
+        <script setup>
+        import { computed } from 'vue';
+        import { useRouter } from '../grouter/index.js';
+
+        // 获取当前路由实例
+        let router = useRouter();
+
+        const comp = computed(() => {
+            // 根据当前路由，在用户路由配置route中计算出匹配的组件，component动态渲染组件
+            const route = router.routes.find((route) => route.path === router.current.value)
+
+            return route ? route.component : null;
+        })
+        </script>
+        ```
+    - router-link组件：组件中有一个`a`标签，只是`a`标签的href属性前面加了一个#，实现hash的修改。
+    - 在Router文件中引入，并在install方法中，注册两个组件
+- 路由的懒加载
+- 路由的正则匹配。。。
+
+#### 路由实现的总结(HTML5标准出现后)
+- API: location.hash; Event: hashchange -> `hash模式`
+- API: history.pushState 、 history.replaceState; Event: popstate -> `history模式`
+- API的介绍可参考红宝书第4版、12章
+- 大致意思就是：hash的改变不触发页面reloads；pushState、replaceState改变history也不触发reloads。
+
+### vue-router实战要点
+
+#### 路由匹配
+- 支持动态路由: `:id` 是路由的动态部分
+    ```
+    const routes = [
+        { path: '/user/:id', name: 'user', component: User }
+    ]
+    ```
+
+#### 路由导航守卫
+- 支持做到根据用户对页面的控制
+
+#### 动态导入功能
+- 路由懒加载，解决首屏渲染性能问题
+
+### tips
+- 此前hash的运用是页面中的锚点定位
+- history模式需要后端配合，nginx新增配置，将所有路由都指向index.html
+- history路由与html5配合更好，能充分利用html5的特性，比如html5中监听滚动条的状态等，history都可以监听，也更利于SEO
