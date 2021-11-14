@@ -1,4 +1,4 @@
-# 前端框架
+# 前端框架 - 极客时间课程笔记
 
 ## MVVM框架简介
 前端MVVM框架实现的目标：**数据驱动页面**。但每个MVVM框架对于数据驱动页面的实现，基本都是不一样的。 - 即数据更新之后，我们怎么通知页面进行更新。
@@ -869,3 +869,50 @@ Vue3 响应式实现的原理：利用`对象的get和set函数`来进行监听
 - 此前hash的运用是页面中的锚点定位
 - history模式需要后端配合，nginx新增配置，将所有路由都指向index.html
 - history路由与html5配合更好，能充分利用html5的特性，比如html5中监听滚动条的状态等，history都可以监听，也更利于SEO
+- **不管是手写实现vuex还是手写实现vue-router，都会用到provide/inject**
+
+## Vue Devtools - 调试工具
+
+### 浏览器自带的调试工具
+
+#### console
+- [console的讲解-MDN](https://developer.mozilla.org/zh-CN/docs/Web/API/Console)
+- 在main.js中加入以下代码，可以直接在控制台中打印出stackoverflow搜索的地址
+    ```
+    window.onerror = function(e){
+        console.log(['https://stackoverflow.com/search?q=[js]+'+e])
+    }
+    ```
+- console.log
+- console.info
+- console.error
+- console.table
+- ...
+
+**tips**
+
+一道面试题：统计一个网页一共有多少种标签
+
+```
+new Set([...document.querySelectorAll('*')].map(n=>n.nodeName)).size
+```
+
+统计出现次数最多的三种标签
+
+```
+Object.entries([...document.querySelectorAll("*")].map(n=>n.tagName).reduce((pre, cur)=>{
+  pre[cur] = (pre[cur] || 0) + 1;
+  return pre;
+}, {})).sort((a, b)=>b[1]-a[1]).slice(0, 3)
+```
+
+### Vue Devtools
+- [安装](https://devtools.vuejs.org/guide/installation.html)
+
+### 断点调试
+- debugger
+
+### 性能相关的调试
+- `performace` tab页面
+- [chorme官方文档](https://developer.chrome.com/docs/devtools/evaluate-performance)
+- lighthouse 生成性能报告。根据性能报告中的相关建议。可以对网页进行性能的提升
