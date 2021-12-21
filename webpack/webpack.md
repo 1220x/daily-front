@@ -70,7 +70,138 @@
     ```
 - 通过npm script运行webpack
     ```
-
+    "scripts": {
+        "build": "webpack"
+    },
     ```
     - 通过运行npm run build运行构建
     - 原理：模块局部安装如果有创建一些命令的话，会在node_modules/.bin目录创建软连接。package.json可以默认读取到.bin目录下这些命令。所以可以再package.json增加scripts，在scripts增加webpack
+
+# webpack基础用法
+
+## entry
+- 指定webpack的打包入口
+
+### 单入口
+- entry是一个字符串
+- 单页应用SPA
+    ```
+    module.exports = {
+        entry: './path/to/my/entry/file.js'
+    }
+
+    ```
+### 多入口
+- entry是一个对象
+- 多页应用MPA
+    ```
+    module.exports = {
+        entry: {
+            app: './src/app.js',
+            adminApp: './src/adminApp.js'
+        }
+    }
+    ```
+1. 多个 entry 的时候，最基本的是输出的 js 数量和 entry 数量相同的，js 文件的名字通常是和 entry 的 key 名字一样。比如：
+    ```
+    entry: {
+        index: './src/index/index.js',
+        search: './src/searc/index.js'
+    }
+    ```
+    对应输出的 js 文件应该是 index.js 和 search.js。当然了，如果你有做一些代码分割，那么生成的 js 文件会更多，不过页面的主 js 文件数量和 entry 数量是一致的。
+
+2. html 的数量和 entry 的数量也是一致的，如果也是1里面提到的 entry，那么将会生成： index.html 和 search.html。这个可以借助 html-webpack-plugin(https://github.com/jantimon/html-webpack-plugin) 达到效果
+## output
+- 用来告诉webpack如何将编译后的文件输出到磁盘
+- entry对应于源代码，output对应于结果代码
+- path: path.join(__dirname, 'dist')。output的参数path必须是一个绝对路径，不能是相对路径
+
+### 单入口配置
+    ```
+    module.exports = {
+        entry: './path/to/my/entry/file.js',
+        output: {
+            filename: 'bundle.js',
+            path: __dirname + './dist'
+        }
+    }
+    ```
+
+### 多入口配置
+通过占位符确保文件名称的唯一
+
+    ```
+    module.exports = {
+        entry: {
+            app: './src/app.js',
+            search: './src/search.js'
+        }
+        output: {
+            filename: '[name].js',
+            path: __dirname + './dist'
+        }
+    }
+    ```
+## loaders
+- webpack开箱即用只支持`JS`和`JSON`两种文件类型，通过loaders去支持其他的文件类型并且把他们转换成有效的模块，并且可以添加到依赖图中。本身是一个函数，接口源文件作为参数，返回转换的结果。
+- 常见loaders：
+    - babel-loader：转换ES6、ES7等JS新特性语法
+    - css-loader：支持CSS文件的加载和解析
+    - less-loader：将less文件转换成CSS
+    - ts-loader：将TS转换成JS
+    - file-loader：进行图片、字体等的打包
+    - raw-loader：将文件以字符串的形式导入
+    - thread-loader：多线程打包JS和CSS
+- 用法
+    - test：指定匹配规则
+    - use：指定使用的loader名称
+    ```
+    module.exports = {
+        module: {
+            rules: [
+                { test: /\.txt$/, use: 'raw-loader' }
+            ]
+        }
+    }
+    ```
+- tips:
+    - less结果less-loader解析成css文件之后，也还要结果 css-loader 的处理，每个loader已办只做一件事情
+    - raw-loader ？？？
+
+## plugins
+- 插件用于bundle文件的优化，资源管理和环境变量的注入，作用于整个构建过程
+- 常见的plugins:
+    - CommonsChunkPlugin：将chunks相同的模块代码提取成公共js。常用于多页面打包中。
+    **在webpack4中已经不推荐使用了，换成了 splitchunksplugin**
+    - CleanWebpackPlugin：清理构建目录
+    - ExtractTextWebpackPlugin：将CSS从bundle文件里面提取成一个独立的CSS文件。**webpack4中已经换成了 mini-css-extract-plugin**
+    - CopyWebpackPlugin：将文件或者文件夹拷贝到构建的输出目录
+    - HtmlWebpackPlugin：创建html文件去承载输出的bundle
+    - UglifyjsWenpackPlugin：压缩JS
+    - ZipWebpackPlugin：将打包的资源生成一个zip包
+- 用法：
+    ```
+    module.exports = {
+        plugins: [
+            new HtmlWebpackPlugin({
+                template: './src/index.html'
+            })
+        ]
+    }
+    ```
+
+## mode
+- 指定当前的构建环境：production development none。webpack4提出的概念
+- 设置mode可以自动的触发，然后使用webpack内置的函数，默认值为production
+- webpack不允许自定义mode
+
+### mode的内置函数功能
+- development：设置`process.env.NODE_ENV`的值为 `development`，开启`NamedChunkPlugin`和`NamedModulesPlugin`。这两个插件在热更新中很实用，可以再控制台打印出是哪一个模块发生了热更新以及模块的路径
+
+- production：设置`process.env.NODE_ENV`的值为`production`，开启`FlagDependencyUsagePlugin`，`FlagIncludeChunksPlugin`，`ModuleConcatenationPlugin`，`NoEmitOnErrorsPlugin`，`OccurrenceOrderPlugin`，`SideEffectsFlagPlugin`，`TerserPlugin`
+
+- none：不开启任何优化选项
+
+- tips:
+    - process.env会返回用户的环境变量，而NODE_ENV是环境变量中用到的较多的一个，用来设置当前构建脚本是开发阶段还是生成阶段。
