@@ -1399,3 +1399,160 @@ $padding: 10px    // 变量
 
 ## 打包发布Vue3应用
 
+## 加餐 - TypeScript
+
+### TypeScript入门
+- TypeScript可以在JavaScript的基础上，对变量的数据类型加以限制。最基本的数据类型包括：`布尔`、`数字`、`字符串`、`null`、`undefined`
+- 当不确定一个变量应该使用哪种类型的变量时，使用`any`来声明变量
+- `enum`定义枚举类型，可以把类型限制在指定的场景之内
+- 通过`|`组合出新的类型
+- 通过`interface`接口可以定义对象的类型限制，
+    - readonly可限制某个属性是否可编辑
+    - `?`可设置 为可选属性
+- 函数的类型限制
+    ```
+    // 大致语法
+    function 函数名(参数: 参数类型): 返回值类型 {}
+    ```
+- 使用变量的方式去定义函数 - （可读性稍微差点）
+    ```
+    // 大致语法
+    (参数类型) => 返回值类型
+    let add1: (a: number, b: number) => number = function(x: number, y: number) {
+        return x + y;
+    }
+
+    // 使用type关键字去定义函数的类型
+    type addType = (a: number, b: number) => number
+    let add2:addType = function(x: number, y:number) {
+        return x+ y
+    }
+
+    // 使用interface关键字去定义函数类型
+    interface addType1 {
+        (a: number, b: number): number
+    }
+    let add3:addType2 = function(x: number, y: number) {
+        return x + y;
+    }
+
+    ```
+- 函数重载 - 函数支持多个类型的参数  --  [vue3源码](https://github.com/vuejs/vue-next/blob/master/packages/reactivity/src/ref.ts#L72)
+    ```
+    // 要求。参数是数字，返回的是数字；参数是字符串，返回的是字符串
+    function reverse(x: number): number
+    function reverse(x: string): string
+    function reverse(x: number | string): number | string | viod {
+        if (tyoeof x === 'string') {
+            return x.split('').reverse().join();
+        } else if (typeof x === 'number') {
+            return Number(x.toString().split('').reverse().join());
+        }
+    }
+    ```
+
+- **浏览器变量和属性** [typeScript源码](https://github.com/Microsoft/TypeScript/tree/main/src/lib)
+    - Window : window类型
+    - HTMLElement ：dom元素类型
+    - NodeList ：节点列表类型
+    - MouseEvent ：鼠标点击事件类型
+
+    ```
+    // window对象
+    let w:Window = window;
+    // dom元素
+    let ele:HTMLElement = document.createElement('div');
+    // 节点列表
+    let allDiv = document.querySelectorAll('class-name');
+    // 鼠标事件
+    ele.addEventListener('click', function(e:MouseEvent) {
+        const args:IAguments = arguments;
+        w.alert(1)
+        console.log(args);
+    }, false)
+    ```
+
+- 一些第三方框架的数据类型
+    ```
+    import { ref, Ref } from 'vue';
+
+    interface Todo {
+        title: string,
+        done: boolean
+    }
+
+    let todos:Ref = ref([{ title: '学习Vue', done: false }])
+    ```
+
+### 泛型
+TypeScript可以进行类型编程，极大提高TypeScript在复杂场景下的应用场景
+
+- 栗子：返回值的类型和参数的类型一致。
+    ```
+    // T 相当于给函数定义了一个类型变量， 【type T = arg的类型】
+    function identity<T>(arg: T): T {
+        return arg
+    }
+
+    // 此时的T是string，返回值的类型也是string
+    identity<string>('玩转Vue3全家桶')
+    identity<number>(1)
+    ```
+- 利用泛型，把函数参数定义成类型
+    ```
+    interface VueCourse5 {
+        name: string,
+        price: number
+    }
+
+    // 只能是name和price中选一个 --- 使用了 keyof 语法，获得已知类型VueCourse5的属性列表
+    type courseProps = keyof VueCourse5
+    let k:CourseProps = 'name'
+    let k1:CourseProps = 'price'
+    ```
+- `keyof`：可以用来拆解已有类型
+- `extends`：实现类型系统中的条件判定 -- `T extends U ? X : Y` -- 类型三元表达式
+    ```
+    // 定义ExtendsType函数，接收泛型参数T，通过判断T是不是布尔值，来返回不同类型的字符串。实现通过传入不同的参数来返回不同的类型
+    type ExtendsType<T> = T extends boolean ? '重学前端' : '玩转Vue3全家桶'
+    type ExtendsType1 = ExtendsType<boolean> // type ExtendsType1 = '重学前端'
+    type ExtendsType2 = ExtendsType<string> // type ExtendsType2 = '玩转Vue3全家桶'
+    ```
+- `in`：实现遍历
+    ```
+    type Course = '玩转Vue3全家桶' | '重学前端'
+    type CourseObj = {
+        [k in Course]: number // 遍历Course类型作为key
+    }
+
+    // 等同于
+    type Course = {
+        '玩转Vue3全家桶': number,
+        '重学前端': number
+    }
+    ```
+- 栗子
+    ```
+    // K extends keyof T  // 限制K的类型必须是T的属性之一
+    functiongetProperty<T, K extends keyof T>(o: T, name: K): T[K] {
+        return o[name]
+    }
+
+    const coursePrice:CourseObj = {
+        '玩转Vue3': 129,
+        '重学前端': 129
+    }
+
+    getProperty(coursePrice, '玩转Vue3')；
+    getProperty(coursePrice, '重学前端');
+    getProperty(coursePrice, '重学');
+    ```
+- `infer`：**<T>**可以给函数参数定义类型变量，**infer**则可以在**extends**关键字之后的变量设置类型变量，更加细致的控制类型。**不是很理解？？？**
+    ```
+    type Foo = () => CourseObj
+
+    // 如果T是一个函数，并且函数返回类型是P就返回P - infer P
+    type ReturnType1<T> = T extends () => infer P ? P: never
+    type Foo1 = ReturnType1<Foo>
+    ```
+
