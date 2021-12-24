@@ -1556,3 +1556,5 @@ TypeScript可以进行类型编程，极大提高TypeScript在复杂场景下的
     type Foo1 = ReturnType1<Foo>
     ```
 
+### 实战练习
+
