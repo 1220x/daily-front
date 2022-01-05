@@ -47,12 +47,42 @@
 
 #### Number
 - 0.1 + 0.2 不是等于 0.3 吗？为什么JavaScript里面不是这样的？
+- 非整数的Number类型无法用`==(或===)`来比较。正确比较浮点数的方法 -- 检查等式两边的差的绝对值是否小于最小精度 -- `console.log(Math.abs(0.1 + 0.2) <= Number.EPSILON)`
 
 #### Symbol
-- ES6新加入的Symbol是个生命东西？
+- ES6新加入的Symbol是个什么东西？
+- 创建：`var mySymbol = Symbol('my symbol')` -- 可以有字符串描述，字符串描述相同的，symbol值也不同
+- 
 
 #### Object
 - 为什么给对象添加的方法能用在基本类型上？
+    - `.`运算符提供了装箱操作，它会根据基础类型构造一个临时对象，使得我们能在基础类型上调用对应对象的方法
+- 对象 -- 属性的集合 -- 数据属性 + 访问器属性
+
+#### 类型转换
+
+##### StringToNumber
+- parseInt：在不传入第二个参数的情况下，只支持16进制前缀`0x`，会忽略非数字。任何时候使用，都建议传入第二个参数
+- parseFloat：只有十进制的解析规则
+
+##### 装箱转换
+- 把基本类型转换为对应的对象。
+- 全局的Symbol函数无法使用new来调用 -- 使用一个函数的call方法来强迫产生装箱
+    ```
+    var symbolObject = (function () { return this }).call(Symbol('a'))
+
+    console.log(typeof symbolObject) // object
+    console.log(symbolObject instanceof Symbol) // true
+
+    var symbolObject1 = Object(Symbol('2'))
+    ```
+- 装箱机制会频繁的产生临时对象，在一些对性能要求比较高的场景下，应该尽量避免对基本类型做装箱转换
+- 每一类装箱对象，都有私有的class属性，这些属性可以使用`Object.prototype.toString.call()`获取。该方法可以准确识别对象对应的基本类型的方法，比`instanceOf`更加准确
+
+##### 拆箱转换
+- ToPrimitive函数 - 对象到基本类型的转换
+- 拆箱转换会尝试调用valueOf和toString来获得拆箱后的基本类型。如果valueof和toString都不存在，抛出typeError
+- 规范指出：类型转换的内部实现是通过`ToPrimitive(input [, PreferredType])`方法进行转换的，这个方法的作用就是将input转为一个非对象类型，参数`PreferredType`是可选的，指出了input期望被转成的类型，不传则默认为number；如果`PreferredType`的值是`string`，那就`先执行toString后执行valueOf`，否则`先执行valueOf后执行toString`
 
 ### JavaScript对象
 
