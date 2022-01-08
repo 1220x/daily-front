@@ -1463,7 +1463,7 @@ $padding: 10px    // 变量
     // dom元素
     let ele:HTMLElement = document.createElement('div');
     // 节点列表
-    let allDiv = document.querySelectorAll('class-name');
+    let allDiv:NodeList = document.querySelectorAll('class-name');
     // 鼠标事件
     ele.addEventListener('click', function(e:MouseEvent) {
         const args:IAguments = arguments;
@@ -1557,4 +1557,91 @@ TypeScript可以进行类型编程，极大提高TypeScript在复杂场景下的
     ```
 
 ### 实战练习
+
+
+[TypeScript练习题](https://github.com/type-challenges/type-challenges/blob/master/README.zh-CN.md)
+
+
+## 如果设计自己的通用组件库？
+
+### 技术栈
+vite + TypeScript + Sass + ESLint
+
+### 环境搭建
+**Tips : 安装第三方包的时候，用npm，但是到了初始化的时候，用npx，？**
+
+**npm 是把包安装到本地的node_modules里，比如我们安装了husky，但是并没有全局安装，直接执行husky会提示找不到，npx就是可以直接使用mode_moudulesn内部安装命令的工具**
+
+- npm init vite@latest
+- project-name: ailemente
+- cd ailemente
+- npm install
+- npm run dev
+- npm install -D husky `配置Git的钩子函数 - 安装husky`
+- npx husky install `初始化husky - 根目录下生成 .husky 文件夹`
+- npx husky add .husky/commit-msg "node scripts/verifyCommit.js" `npx husky add 命令 新增 commit msg 钩子`
+    - windows系统中，执行上面的命令，可能会识别不了，需要分开执行
+    - 第一步：`npx husky sdd .husky/commit-msg`
+    - 第二部：`在.husky文件下的commit-msg文件中，写入 node scripts/verifyCommit.js`
+- **package.json中，配置githooks**
+    ```
+    "scripts": {
+        "gitHooks": {
+            "commit-msg": "node scripts/verifyCommit.js"
+        }
+    }
+    ```
+- `.git/COMMIT_EDITMSG`保存git提交时的描述信息的文件
+- verifyCommit.js
+    ```
+    1、读取.git/COMMIT_EDITMSG文件中的commit提交的信息
+    2、正则校验提交信息的格式等
+    3、校验不通过，终止代码的提交
+    ```
+- git钩子
+    - commit-msg：提交代码的时候执行的 -- 校验提交的信息
+    - pre-commit：提交代码之前执行的 -- ESLint检测代码格式
+- 添加代码格式校验
+    - `npx husky add .husky/pre-commit "npm run lint"`
+    - 以上命令同样可以拆解
+    - package.json文件中配置命令`lint: eslint --fix --ext .ts, .vue src`
+    - Vue3不要求只有一个根元素，在eslint的rules中配置`"vue/no-multiple-template-root": "off"`，关闭一个根元素的校验
+
+### 布局组件
+
+##### 样式的处理
+scss 的mixin：
+
+```
+$namespace: 'el';
+@mixin b($block) {
+    $B: $namespace + '-' + $block !global; // 通过传进来的block生成新的变量$B，拼接上了 饿了
+    .#{$B} {
+        @content;
+    }
+}
+
+// 添加后缀啥的
+@mixin when($state) {
+    @at-root {
+        &.#{$state-prefix + $state} {
+            @content;
+        }
+    }
+}
+```
+```
+@import '../styles/mixin.scss';
+@include b(container) {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    flex-basis: auto;
+    box-sizing: border-box;
+    min-width: 0;
+    @include when(vertical) {
+        flex-direction: column;
+    }
+}
+```
 
