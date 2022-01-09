@@ -1606,6 +1606,12 @@ vite + TypeScript + Sass + ESLint
     - 以上命令同样可以拆解
     - package.json文件中配置命令`lint: eslint --fix --ext .ts, .vue src`
     - Vue3不要求只有一个根元素，在eslint的rules中配置`"vue/no-multiple-template-root": "off"`，关闭一个根元素的校验
+    - vue3.2中不需要显式的引入`definProps`等，需要在eslint配置中加入：
+        ```
+        "env": {
+            "vue/setup-compiler-macros": true
+        },
+        ```
 
 ### 布局组件
 
