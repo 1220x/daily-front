@@ -1564,6 +1564,7 @@ TypeScript可以进行类型编程，极大提高TypeScript在复杂场景下的
 
 ## 如果设计自己的通用组件库？
 
+基础组件 + 数据组件 + 表单组件+ 通知组件
 ### 技术栈
 vite + TypeScript + Sass + ESLint
 
@@ -1650,4 +1651,96 @@ $namespace: 'el';
     }
 }
 ```
+
+##### 组件注册
+使用插件机制对外暴露安装的接口
+```
+import {App} from 'vue'
+import ElContainer from './Container.vue'
+import ElHeader from './Header.vue'
+import ElFooter from './Footer.vue'
+import ElAside from './Aside.vue'
+import ElMain from './Main.vue'
+
+export default {
+  install(app:App){
+    app.component(ElContainer.name,ElContainer)
+    app.component(ElHeader.name,ElHeader)
+    app.component(ElFooter.name,ElFooter)
+    app.component(ElAside.name,ElAside)
+    app.component(ElMain.name,ElMain)
+  }
+}
+```
+
+## 单元测试
+写好测试的函数，可以`node`命令运行函数来测试；在提交代码之前，执行测试函数。
+
+-- TDD开发 -  测试驱动开发
+
+### Jest
+#### 安装
+```
+npm install -D jest@26 vue-jest@next @vue/test-utils@next
+npm install -D babel-jest@26 @babel/core @babel/preset-env
+npm install -D ts-jest@26 @babel/preset-typescript @types/jest
+```
+
+- vue-jest 和 @vue/test-utils 是测试 Vue 组件必备的库
+- babel转码的库
+- Jest 适配 TypeScript 的库
+
+#### 配置
+- .babel.config.js文件配置 -- 为了让babel解析到node和typescipt环境中
+    ```
+    module.exports = {
+        presets: [
+            ['@babel/preset-env', { targets: { node: 'current' } }],
+            '@babel/preset-typescript',
+        ],
+    }
+    ```
+- 新建`jest.config.js`文件 -- 配置jest的测试行为。
+- 不同格式的文件需要使用不同的命令来配置。
+    - .vue：vue-test
+    - .js .jsx: babel-test
+    - .ts: ts-test
+- 匹配文件名是`xx.spec.js`。Jest 只会执行.spec.js 结尾的文件
+- package.json文件中：scripts中 增加 `"test": "jest"`
+
+#### button组件
+- 配置vue全局变量
+    ```
+    const app = createApp(App);
+
+    app.config.globalProperties.$AILEMENT = {
+        size: 'large'
+    }
+    ```
+- vue3获取当前的实例
+    ```
+    getCurrentInstance获取当前的实例 ; 对应的TS类型 - ComponnetIternalInstance
+    import { getCurrentInstance } from 'vue';
+
+    ```
+
+## 表单组件
+
+## 弹窗组件
+
+## 树组件
+
+## 表格组件
+
+## 组件的可交互式文档
+
+## 自定义渲染器
+
+## 手写响应式系统
+
+## vue运行时
+
+## 虚拟DOM
+
+## 编译原理
 
