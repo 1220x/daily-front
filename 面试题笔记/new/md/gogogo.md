@@ -60,3 +60,48 @@
         - 并不是所有浏览器的post请求都会发送两个数据包，Firefox就发送一次
 - Connection：keep-alive，用于告诉客户端，本次HTTP请求 结束之后并不需要关闭TCP连接，这样可以使下次HTTP请求使用相同的TCP通道，节省TCP连接建立的时间
 - HTTP属于客户端缓存，常认为浏览器有一个缓存数据库，用来保存一些静态文件。
+- 缓存分为：强缓存和协商缓存。强缓存的优先级高于协商缓存。若两种缓存都存在，且强缓存命中，则协商缓存不会再验证标识。
+    - 强缓存：缓存数据库中有数据，且没有过期，直接从缓存数据库中取数据，不请求服务器。有数据但是缓存失效，请求服务器，服务器返回数据和缓存规则，将数据和缓存规则存入缓存数据库中
+    - 协商缓存：从缓存数据库中获取缓存数据标识，请服务器验证标识是否失效，没有失效则返回304，直接冲缓存中取数据。失效则返回新的数据和缓存规则，将数据和缓存规则存入数据库。
+- 缓存的响应头：
+    - 强缓存：响应头中的Expires和Cache-Control
+        - Expires：服务器返回的数据到期时间。http1.0的。时间的对比可能会有误差，现在更多使用cache-control
+        - Cache-Control：
+            - Private：客户端可以缓存
+            - public：客户端和代理服务器都可以缓存
+            - max-age=t：缓存内容将在t秒后失效
+            - no-cache：需要使用协商缓存来验证缓存数据
+            - no-store：所有内容都不会缓存
+    - 协商缓存：
+        - Last-Modified：服务器返回的，说明资源的最后修改时间。客户端在请求时会带上`if-Modified-Since`，值为资源的最后修改时间，服务器收到后对比时间，判断资源有没有过期
+        - Etag：服务器响应头中，告诉浏览器当前资源在服务器生成的唯一标识（生成规则由服务器决定）。客户端再次请求时会带上`if-None-Match`，服务器匹配这个唯一 标识，不同则说明该资源被改动过
+- 不同的刷新页面的方式
+    - 浏览器地址栏中写入URL，回车：发现有缓存，就不继续请求了，直接从缓存中取
+    - F5，取服务器看看资源是否 过期，请求会带上if-modified-since
+    - Ctrl+F5：吧缓存的文件删了，从服务器请求完整的资源
+
+#### 浏览器渲染页面
+- 回流：
+    - 一些常用且会导致回流的属性和方法
+        - clientWidth、clientHeight、clientTop、clientLeft。。。
+
+## 事件委托
+- 事件委托依靠的是事件冒泡。
+- event：target --- 触发事件的那个对象   currentTarget --- 事件绑定的哪个对象
+
+## 浏览器如何创建出渲染层
+**渲染层：DOM树中的每一个节点都对应一个渲染对象，当他们的渲染对象处于相同的坐标空间（z轴空间）时，就会形成一个渲染层**
+
+- 根元素document
+- 有明确的定位属性：relative  fixed  sticky  absolute
+- opacity < 1
+- 有CSS filter属性
+- 有CSS mask属性
+- overflow不为visible
+- CSS transform属性不为none
+- 。。。。。
+
+## webpack的loader和plugin
+- loader - 用于处理模块源码的转换，描述了webpack如何处理非JavaScript模块。从不同的语言转换为JavaScript语言（css-loader、style-loader）
+- plugin - 用于解决loader无法实现的其他事，直接作用于webpack，扩大webpack的功能。
+
