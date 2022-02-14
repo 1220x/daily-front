@@ -187,3 +187,17 @@ function resolvePromise(promise2, x, resolve, reject) {
         resolve(x);
     }
 }
+
+// promises-aplus-tests测试q
+Promise.defer = Promise.deferred = function () {
+    let defer = {}
+    defer.promise = new Promise((resolve, reject) => {
+      defer.resolve = resolve
+      defer.reject = reject
+    })
+    return defer
+  }
+  try {
+    module.exports = Promise
+  } catch (e) {}
+  
