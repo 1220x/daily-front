@@ -819,4 +819,79 @@ bind的实现要复杂一点，因为要考虑的情况比较多，还要涉及�
 
 ## 手写实现一个寄生组合式继承
 
+### 原型链的继承
+- 原理：让子类的原型对象指向父类的实例，当子类的实例找不到对应的属性和方法时，会延续着原型对象（也就是它的父类）往上找
+- 缺点：
+    - 多个实例指向同一个原型，其中一个有修改，会影响到另一个
+    - 没有实现super功能，对父类进行传参
+```
+function Parent(name) {
+    this.name = name;
+}
 
+function Child() {
+
+}
+
+// 子类的原型对象指父类的实例
+Child.prototype = new Parent();
+Child.prototype.constructor = Child
+
+```
+
+### 构造函数继承
+- 原理：在子类的构造函数中，去执行父类的构造函数，并且为其绑定子类的this
+- 缺点：不能继承在父类原型上的方法和属性
+```
+function Parent(name) {
+    this.name = name;
+}
+
+// 子类的构造函数 --- 调用父类的构造函数，并且为其绑定this
+function Child(name) {
+    Parent.call(this, name);
+}
+```
+
+### 寄生组合式继承
+
+#### 组合式继承
+- 原理：构造函数式继承 + 原型链式继承
+- 缺点：每生成一个子类的实例，就会执行一次new Parent 和 Parent.call
+```
+function Parent(name) {
+    this.name = name;
+}
+
+function Child(name) {
+    Parent.call(this, name);
+}
+
+Child.prototype = new Parent();
+```
+
+#### 寄生组合式继承
+**解决了组合式继承中，构造函数可能被多次执行的问题**
+```
+function Parent(name) {
+    this.name = name;
+}
+
+function Child(name) {
+    Parent.call(this, name);
+}
+
+// 在组合式继承中，使用的new Parent，构造函数就可能被多次执行
+Child.prototype = Parent.prototype;
+// 浅拷贝解决   ---   子类的prototype指向了父类的prototype，子类原型的改动可能会影响到父类原型
+Child.prototype = Object.assign(Parent.prototype);
+```
+
+## 手写new
+- 生成一个新的对象实例
+- 取到第一个参数，即构造函数
+- 将新生成的实例对象的原型指向构造函数
+- 改变this的指向
+- 返回实例对象（若构造函数有返回值，则返回构造函数的返回值，若构造函数没有返回值，则返回新生成的实例对象）
+
+## 手写setTimeout模拟实现setInterval
