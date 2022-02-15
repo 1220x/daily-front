@@ -895,3 +895,147 @@ Child.prototype = Object.assign(Parent.prototype);
 - 返回实例对象（若构造函数有返回值，则返回构造函数的返回值，若构造函数没有返回值，则返回新生成的实例对象）
 
 ## 手写setTimeout模拟实现setInterval
+
+## TypeScript 中的 interface 和 type
+
+### interface
+- 接口，是TS设计出来的用于定义对象类型的，可以对对象的形状进行描述
+```
+interface Person {
+    name: string,
+    age: number
+}
+
+const person: Person = {
+    name: '李四',
+    age: 20
+}
+```
+### type
+- 类型别名，类型别名只是给类型起一个新的名字，**它并不是一个类型，只是一个别名而已**
+
+**类型别名会让TS看起来更加的简洁、清晰**
+
+```
+type Name = string; // 给string这个类型起了一个别名  Name
+type NameResolver = () => string;  // 给 一个函数起了一个别名   NameResolver
+type NameOrResolver = Name | NameResolver;
+
+// getName这个方法的参数
+function getName(n: NameOrResolver): Name {
+    if (typeof n === 'string') {
+        return n;
+    } else {
+        return n();
+    }
+}
+```
+
+```
+type Person = {
+    name: string,
+    age: number
+}
+
+const person: Person = {
+    name: '222',
+    age: 30
+}
+```
+
+### 相同点
+- 都可以定义一个对象或者函数
+    ```
+    // 定于函数的写法
+    type addType = (num1: number, num2: number) => number;
+
+    interface addType {
+        (num1: number, num2: number): number
+    }
+
+    const add:addType = (num1, num2) => {
+        return num 1 + num2;
+    }
+    ```
+- 都允许继承（extends）
+    **interface使用extends实现继承；type使用交叉类型实现继承**
+    - interface继承interface
+        ```
+        interface Person {
+            name: string
+        }
+
+        interface Student extends Person {
+            grade: number
+        }
+        ```
+    - type继承type
+        ```
+        type Person {
+            name: string
+        }
+
+        type Student = Person & { grade: number } // 用交叉类型
+        ```
+    - type继承interface
+        ```
+        interface Person {
+            name: string
+        }
+
+        type Student = Person & { grade: nnumber } // 用交叉类型
+        ```
+    - interface继承type
+        ```
+        type Person {
+            name: string
+        }
+
+        interface Student extend Person {
+            grade: number
+        }
+        ```
+
+### 不同点
+- 类型别名会给一个类型起个新名字。类型别名有时和接口很像，但是可以作用于原始值、联合类型、元组以及其他任何你需要手写的类型
+    - 声明基本类型
+        ```
+        type Name = string
+        ```
+    - 声明联合类型
+        ```
+        type arrItem = number | string
+        const arr:arrItem[] = [1, '2', 3]
+        ```
+    - 声明交叉类型
+        ```
+        type Student = Person & { grade: number }
+        ```
+    - 声明元组
+        ```
+        type Teacher = Person & { major: string }
+
+        type StudentAndTeacherList = [Student, Teacher]; // 元组类型
+        const list:StudentAndTeacherList = [
+            { name: 'lin', grade: 100 }, 
+            { name: 'liu', major: 'Chinese' }
+        ]
+        ```
+- interface ---  合并重复声明
+    - 当有重复声明的interface，会自动合并，类型别名不会自动合并
+
+## SEO
+搜索引擎优化，一种利用搜索引擎的搜索规则来提高目前网站在有关搜索引擎内的自如排名的方式。
+
+- 优化:
+    - title description  keyword
+    - 利用号HTML语义化
+    - 重要的东西放前面
+    - 少用iframe
+
+## doctype
+标准模式的渲染方式和JS的解析方式都是按照浏览器支持的最高标准进行的。
+
+兼容模式中，页面以宽松的向后兼容的方式显示，模拟老式浏览器的行为以防止站点无法工作。
+
+DOCTYPE的存在，就是为了声明，该页面的使用标准模式，不
