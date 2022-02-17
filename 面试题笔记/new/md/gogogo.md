@@ -883,6 +883,7 @@ function Child(name) {
 
 // 在组合式继承中，使用的new Parent，构造函数就可能被多次执行
 Child.prototype = Parent.prototype;
+
 // 浅拷贝解决   ---   子类的prototype指向了父类的prototype，子类原型的改动可能会影响到父类原型
 Child.prototype = Object.assign(Parent.prototype);
 ```
@@ -894,8 +895,61 @@ Child.prototype = Object.assign(Parent.prototype);
 - 改变this的指向
 - 返回实例对象（若构造函数有返回值，则返回构造函数的返回值，若构造函数没有返回值，则返回新生成的实例对象）
 
-## 手写setTimeout模拟实现setInterval
+```
+function myNew () {
+    // 生成一个新的对象实例
+    let obj = new Object();
 
+    // 获取第一个参数
+    let constructor = Array.prototype.shift.call(arguments);
+
+    // 将新生成的实例的对象原型指向构造函数
+    obj.__proto__ = constructor.prototype;
+
+
+    // 改变this的指向
+    constructor.call(obj, ...arguments);
+
+    // 返回一个新的对象实例
+    return obj
+
+    // 若构造函数有返回值
+    let ret = constructor.call(obj, ...arguments);
+
+    return typeof ret === 'object' ? ret : obj;
+}
+```
+
+## 手写setTimeout模拟实现setInterval
+```
+function mySettimeout(fn, time = 1000) {
+    let timer = null;
+    let isClear = false;
+
+    function interval() {
+        // 当isClear设置为true时，停止该定时器的调用
+        if (isClear) {
+            isClear = false;
+            clearTimeout(timer);
+            return;
+        }
+
+        // 调用定时器传入的回调
+        fn();
+
+        // 递归调用
+        timer = setTimeout(interval, time);
+    }
+
+    // 先执行一次
+    timer = setTimeout(interval, timer);
+
+    // 调用该函数，返回值为一个函数，返回函数中将isClear置为true
+    return () => {
+        isClear = true;
+    }
+}
+```
 ## TypeScript 中的 interface 和 type
 
 ### interface
@@ -1038,4 +1092,164 @@ const person: Person = {
 
 兼容模式中，页面以宽松的向后兼容的方式显示，模拟老式浏览器的行为以防止站点无法工作。
 
-DOCTYPE的存在，就是为了声明，该页面的使用标准模式，不
+DOCTYPE的存在，就是为了声明，该页面的使用标准模式，不声明，可能一些旧的网站会出现兼容模式。
+
+## 手写发布订阅模式
+- 一个存储订阅信息的对象  --- 构造函数中初始化
+- 一个on事件 --- 订阅
+- 一个off事件 --- 删除订阅
+- 一个once事件 --- 只触发一次的处理
+- 一个emit事件 --- 触发回调事件的
+
+```
+class EventEmitter {
+    construct() {
+        this.events = {}
+    }
+
+    on () {
+
+    }
+
+    off() {
+
+    }
+
+    once(type, callback) {
+        function fn () {
+            callback();
+            this.off(type, fn);
+        }
+
+        // 执行新写的fn函数，在fn函数内部执行callback，之后将中间函数fn删除
+        this.on(type, fn);
+    }
+
+    emit() {
+
+    }
+}
+```
+
+## Vue中的this指向
+### 生命周期钩子的this
+生命周期钩子函数的this上下文指向调用它的Vue的实例
+    
+所有的生命周期钩子自动绑定this上下文到实例中，因此可以访问数据，对property和方法进行运算。这意味着你不能使用箭头函数来定义一个生命周期方法。箭头函数绑定了父上下文，因此this与你期待的Vue实例不同
+
+### Vue中回调函数中的this
+```
+methods: {
+    logThis() {
+        consoel.log(this, 'methods中的this');
+    },
+    onclick() {
+        console.log(this, 'vue中的this');
+        setTimeout(this.logThis);
+
+        setTimeout(function () {
+            console.log(this, '回调函数中的bind前的this');
+        })
+
+        setTimeout(function () {
+            console.log(this, '回调函数中bind后的this');
+        }.bind(this));/
+    }
+}
+```
+
+- 若回调函数为**匿名函数**，非严格模式下，指向window，严格模式下为undefined
+- 若回调函数为自定义方法，则this指向Vue实例
+- 若回调函数为箭头函数，则this指向Vue实例（父级的this）
+
+### Vue中addEventListener中的this
+通常，事件监听函数中的this都指向绑定事件的那个元素，但是在Vue中，监听函数中的this也指向Vue实例。
+
+**除了回调函数中的this，其他地方的this均指向Vue实例（回调函数为箭头函数或者自定义方法，）**
+
+## Vue中this读取数据 -- 避免滥用
+
+### this读取data中数据的过程
+- data中数据，会被添加getter和setter，将其转换成响应式的。
+- this读取数据时，会触发getter函数
+- 存在Dep.target时，使用this读取data中的数据，会去收集依赖。如果滥用this读物data中的数据，会多次重复的收集依赖，从而产生性能问题
+
+## 手写防抖函数
+- 防抖：持续触发某一个事件，只有在某一段时间后不触发了才会执行事件处理函数
+- 节流：持续触发某一个事件，一段时间内只会执行一次事件处理函数
+
+## MVVM
+- VM做了两件事达到了数据的双向绑定
+    - 【模型】转换为【视图】，即将后端传递的数据转化成页面上看到的数据。 --- 数据绑定
+    - 【视图】转换为【模型】，即将页面上所看到的转换成后端的数据。 --- dom事件监听
+- 严格的MVVM要求View不能和Model直接通信，而Vue提供了$ref这个属性，让Model可以直接操作View，违反了这一规定，所以说Vue没有完全遵循MVVM。
+
+## 观察者模式和发布订阅模式
+观察者模式是指，一个对象（subject）维持一系列依赖于它的对象（observe），当有关状态发生变更时Subject对象则通知一系列的Obsever对象进行更新
+
+在观察者模式中，Subject对象拥有添加 、删除和通知一系列Observe的方法等等，而Observe对象拥有更新的方法等等
+
+发布订阅模式中，可以基于不同的主题去执行不同的自定义事件，发布订阅模式要比观察者模式更加的灵活多变。
+
+## 0.5PX的线
+- 直接设置0.5px，不同的浏览器会有不同的表现
+- 缩放：设置1px，scale 0.5
+    ```
+    .line {
+        height: 1px;
+        transform: scaleY(0.5)
+    }
+    ```
+
+
+## Vue生命周期
+- updated：避免在此期间更改数据，因为这可能导致无限循环的更新，该钩子在服务端渲染期间不被调用。
+- destoryed：该钩子在服务器端渲染期间不被调用。
+- activated: 组件被激活时调用(keep-alive)
+- deactivated：组件被销毁时调用(keep-alive)
+- created及其之后，就可以发起异步请求了。推荐在created中发起。
+    - created中发起异步请求，可以更快速的获取数据，减少页面loading的时间
+    - ssr不支持beforeMount、mounted钩子函数，所以放在created中有助于一致性。
+
+## Vue的单向数据流
+数据总是从父组件传到子组件，子组件没有权利修改父组件传过来的数据，只能请求父组件对原始数据进行修改。这样会防止从子组件以外的改变父级组件的状态，从而导致数据流向难以理解
+
+子组件要修改父组件的值，可以通过$eimt的方式通知父组件，让父组件去修改。
+
+## computed和watch
+
+### computed
+计算属性，依赖其他属性计算值，并且computed的值是有缓存的，只有当计算值变化才会返回内容，可以设置getter和setter
+
+一般会用在模板渲染中，某个值是依赖了其他的响应式对象甚至计算属性而来
+
+如果计算属性依赖的值不发生变化，页面更新的时候不会重新计算，计算结果会被缓存，可以用来优化性能
+
+### watch
+监听属性，监听到值的变化就会执行回调，在回调中处理一些逻辑操作
+
+适用于观测某个值的变化去完成一段复杂的业务逻辑
+
+## Vue如何检测数组的变化
+考虑到性能原因，没有用defineProperty对数组的每一项进行拦截，而是选择对7中数组的方法进行了重写**push、shift、pop、splice、unshift、sort、reverse**
+
+## Vue3的新变化
+响应式原理的改变
+
+组件声明方式的修改，Vue3使用composition API，setup是新增的一个选项，是组件内使用composition API的入口
+
+[Vue3新特性以及使用校验的总结](https://juejin.cn/post/6940454764421316644)
+
+## Vue2和Vue3的响应式原理的区别
+vue3使用proxy替代Object.defineProperty。Proxy可以直接监听对象和数组的变化，并且有多达13种拦截方法。
+
+## Vue的父子组件生命周期钩子函数的执行顺序
+- 子组件的更新过程
+    父 b-u   子 b-u  子u  父u
+- 销毁过程
+    父 b-d  子b-d  子d  父d
+
+## 虚拟DOM是什么，有什么优缺点？
+
+## Vue声明响应式的方式
+- 
