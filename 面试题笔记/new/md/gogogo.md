@@ -1252,4 +1252,262 @@ vue3使用proxy替代Object.defineProperty。Proxy可以直接监听对象和数
 ## 虚拟DOM是什么，有什么优缺点？
 
 ## Vue声明响应式的方式
-- 
+部分场景下，使用解构之后，数据就不能再保持响应式，使用toRef可以继续保持响应式
+
+- reactive：只能处理引用类型
+- ref：可以处理js基础类型和引用类型
+    ```
+    setup() {
+        // ref实现对对象的双向绑定
+        const obj = ref({ count: 1, name: '张三' })
+        setTimeout(() => {
+            obj.value.count = obj.value.count + 1;
+            obj.value.name = '李四';
+        })
+
+        return {
+            obj
+        }
+    }
+    ```
+- toRefs：用于将一个reactive对象转换为属性全部为ref对象的普通对象
+    ```
+    const user = reactive({ nickname: 'xiaofan', age: 26, gender: '女' });
+
+    return {
+        ...toRefs(user)
+    }
+
+    // ...toRefs：首先是解构，然后是toRefs抓换成ref对象
+    ```
+
+## Vue3的监听
+- watch：有三个参数
+    - source：用于指定要侦听的响应式变量，可以支持string object function array
+    - callback：执行的回调函数
+    - options：支持deep、immediate、flush选项
+    ```
+    watch(() => state.age, (newValue, preValue) => {})
+    ```
+- watch：默认情况下是惰性的，也就是说仅在侦听的源数据变更时才会执行回调。当使用immediate:true时，侦听的回调就会立即执行
+- watch：会在组件被销毁时自动停止，如果在组件销毁之前，我们想要停止掉某个监听，可以调用`watch()`函数的返回值
+    ```
+    const stopWatchRoom = watch(() => state.room, (newType, oldType) => {
+        console.log("新值:", newType, "老值:", oldType);
+    }, {deep:true});
+
+    setTimeout(()=>{
+        // 停止监听
+        stopWatchRoom()
+    }, 3000)
+
+    ```
+
+
+- watchEffect：会自动收集依赖，只要指定一个回调函数。在组件初始化时，会执行一次来手机依赖，然后当收集到的依赖中数据发生变化时，就会再次执行回调函数。
+    - watchEffect不需要手动传入依赖
+    - watchEffect会先执行一次用来自动收集依赖
+    - watchEffect无法获取到变化前的值，只能获取变化后的值
+    ```
+    watchEffect(() => {
+        console.log(state.age);
+        console.log(state.name);
+    })
+    ```
+
+## Vue3的Suspense
+在前后端交互获取数据时，是一个异步的过程，一般我们都会一共一个加载中的动画，当数据返回时配合-if来控制数据的显示。
+
+Vue3提供的新的内置组件`Suspense`，它提供两个`tenplate`slot，刚开始会渲染一个fallback状态下的内容，直到到达某个条件后才会渲染default状态的正式内容。
+
+```
+<Suspense>
+    <temlate #default>
+        <async-component />
+    </template>
+    <temlate #fallback>
+        <div>
+            Loading...
+        </div>
+    </template>
+</Suspense>
+```
+
+**Suspense只是一个带插槽的组件，只是它的插槽 指定了`default`和`fallback`两种状态**
+
+## Vue3的tree-shaking
+Vue3在考虑到`tree-shaking`基础上，重构了全局和内部的API，表现结果就是现在的全局API需要听过`ESModule`的引用方式进行具名引用
+
+```
+// vue2中的写法
+import Vue from 'vue';
+
+Vue.nextTick(() => {})
+
+// $nextTick() 只是  Vue.nextTick的一个简易包装
+```
+
+```
+// Vue3中的写法
+import { nextTick } from 'vue';
+
+nextTick(() => {})
+```
+
+### 受影响的API
+以下这些API只能通过具名导入的方式来使用
+- Vue.nextTick
+- Vue.observer (用Vue.reactive替代)
+- Vue.version
+- Vue.compile（仅限完整版本的时候可用）
+- Vue.set （仅在2.X兼容的版本中可用）
+- Vue.delete (与上同)
+
+## Vue3中v-model的升级 
+
+### Vue2中的v-model
+在Vue2中，使用v-model其实就相当于传递了value属性，并触发了input事件。
+```
+<search-input v-model="searchValue"></search-input>
+<search-input :value="searchValue" @input="searchValue = $event"></search-input>
+```
+
+自定义实现v-model
+```
+export default {
+    model: {
+        prop: 'search',
+        event: 'change'
+    }
+}
+```
+
+在子组件中触发事件
+```
+this.$emit('update:visible', false);
+```
+
+### Vue3中的v-model
+在Vue3中，使用v-mode其实就相当于传递了modelValue属性，同时触发一个update:modelValue事件
+```
+<modal v-model="isVisible"></modal>
+
+<modal :modelValue="isVisible" @update:modelValue="isVisible = $event">
+```
+如果要绑定属性名，只需要给v-model传递一个参数就行，同时可以绑定多个v-model
+```
+<modal v-model:visible="isVisible" v-model:content="content"></modal>
+
+<modal
+    :visible="isVisible"
+    :content="content"
+    @update:visible="isVisible = $event"
+    @uodate:content="content = $event"
+></modal>
+```
+
+## JS数组和树的处理
+
+### 递归的方式实现数组转树
+在获取children的时候调用递归的方法来处理
+```
+function addToTree(list, pId) {
+    let flag = list.filter(item => item.pId === pId);
+
+    return flag.length === 0 ? [] : flag.map(item => {
+        let obj = { id: item.id, pId: item.pId, children: addToTree(list, item.id) };
+        return obj.children.length === 0 ? { id: obj.id, pId: obj.pId } : obj;
+    })
+}
+
+
+let newArr = addToTree(arr, null);
+
+console.log(newArr);
+```
+### 双重for循环的实现数组转树
+```
+function listToTree(arr) {
+    arr.foreach(element => {
+        let parentId = element.pId;
+        if (parentId) {
+            arr.foreach(ele => {
+                if (parentId === ele.id) {
+                    // 当前内部循环到的这个元素是某个元素的父级元素
+                    if (!ele.children) {
+                        ele.children = []
+                    }
+
+                    ele.children.push(element);
+                }
+            })
+        }
+    })
+
+    console.log(arr);
+
+    arr = arr.filter(item => item.pId === null);
+    console.log(arr);
+
+    return arr;
+}
+```
+
+### 递归-树转数组
+递归的是children
+
+```
+function fn(obj, res = []) {
+    // 先添加当前元素
+    res.push(obj);
+
+    if (obj.children && obj.children.length) {
+        for (const item of obj.children) {
+            fn(item, res);
+        }
+    }
+}
+```
+### 循环-树转数组
+借鉴了“栈”的数据结构特点，先入栈，再出栈
+```
+function treeToArray(obj) {
+    let stack = [];
+    let res = [];
+
+    stack.push(obj);
+
+    while(stack.length) {
+        const item = stack[0];
+        res.push(obj);
+        stack.shift();
+
+        if (item.children && item.children.length) {
+            stack.push(...obj.children);
+        }
+    }
+
+    return res;
+}
+```
+
+## CSS单位
+
+## JS引用类型和基本类型的区别
+### 存储位置的不同
+- 基本类型
+    - 存储在栈内存，存储的就是变量的实际内容
+- 引用类型
+    - 栈内存中存储的是指针，指向堆内存，堆内存中存储的是真实的内容
+
+### 赋值操作
+- 基本类型
+    - 基本类型的变量，赋值操作，就是把值赋给新的变量
+- 引用类型
+    - 引用类型的赋值，赋的是指针的值，新旧变量指向的还是同一块内存地址
+## Vue的provide和inject
+这对选项需要一起使用，以允许一个祖先组件向其所有的子孙后代注入一个依赖，不论组件层次有多深，在其上下游关系成立的时间里面始终生效。
+
+provide可以在组件组件中指定我们想要提供给狗带组件的数据或方法
+## for...in  for...of foreach的区别
+
