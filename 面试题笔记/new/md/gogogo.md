@@ -1249,8 +1249,6 @@ vue3使用proxy替代Object.defineProperty。Proxy可以直接监听对象和数
 - 销毁过程
     父 b-d  子b-d  子d  父d
 
-## 虚拟DOM是什么，有什么优缺点？
-
 ## Vue声明响应式的方式
 部分场景下，使用解构之后，数据就不能再保持响应式，使用toRef可以继续保持响应式
 
@@ -1402,7 +1400,7 @@ this.$emit('update:visible', false);
     :visible="isVisible"
     :content="content"
     @update:visible="isVisible = $event"
-    @uodate:content="content = $event"
+    @update:content="content = $event"
 ></modal>
 ```
 
@@ -1491,8 +1489,6 @@ function treeToArray(obj) {
 }
 ```
 
-## CSS单位
-
 ## JS引用类型和基本类型的区别
 ### 存储位置的不同
 - 基本类型
@@ -1508,6 +1504,396 @@ function treeToArray(obj) {
 ## Vue的provide和inject
 这对选项需要一起使用，以允许一个祖先组件向其所有的子孙后代注入一个依赖，不论组件层次有多深，在其上下游关系成立的时间里面始终生效。
 
-provide可以在组件组件中指定我们想要提供给狗带组件的数据或方法
-## for...in  for...of foreach的区别
+provide可以在祖先组件中指定我们想要**提供**给后代组件的数据或方法。而在任何后代组件中，我们都可以使用inject来接收provide**提供**的数据或者方法。
 
+**`provide`和`inject`绑定并不是可响应式的。这是刻意为之，然而，如果你传入 了一个可监听的对象，那么其对象的属性还是可响应的**
+
+也就是说，vue本身不会对provide中的变量进行响应式处理。所以，要想inject接收的变量是响应式的，provide本身提供的变量就需要是响应式的。
+
+### provide/inject的使用
+栗子1：
+
+```
+// 父组件
+provide: {
+    foo: 'bar'
+}
+// 子组件
+inject: ['foo'],
+created () {
+    console.log(this.foo); // bar
+}
+
+```
+
+```
+provide() {
+    return {
+        text: 'bar' // 这是一个非响应式的变量
+    }
+}
+
+inject: ['text']
+
+created() {
+    this.text = 'newText';  // 因为不是响应式的数据，在模板中，依然会显示 bar
+}
+```
+
+## provide/inject更推荐用于组件的开发
+例如：element-ui中的button的size是会受到外层form-item或者form组件的影响的，这里就需要使用provide和inject来传递数据，使用props传递属性的方式太过繁琐且可能不太可行。因为button组件和form组件之间的层级关系是不确定。
+
+## 数组循环的方法
+
+### map
+- 数组方法
+- 不改变原数组但是会返回新数组
+- 可以使用break中断循环，可以使用return返回到外层函数
+### forEach
+- 数组方法
+- 没有返回值
+- 遍历的时候不用关心集合下标的问题，效率和for循环相同
+- 不能使用break中断循环，不能使用return返回到外层函数。return 可以跳过循环中的一个迭代，跳过之后会执行下一个迭代
+- forEach对于空数组是不会执行回调函数的
+### for in **大部分用于对象**
+- 用于循环遍历数组或对象属性
+- 可以遍历数组的键名，遍历对象简洁方便
+- 循环的是`key`
+- 会遍历到原型链上属性
+
+
+### for of **不能遍历对象**
+- 可遍历map、object、array、set、string等，用来遍历数组，比如组中的值
+- 避免了`for...in`的所有缺点。可以使用`break`，`continue`，`return`，不仅支持数组的遍历，还可以遍历类似数组的对象。
+- 替代`for...in`和`forEach`
+- 循环出的是`value`
+
+## 虚拟DOM是什么，有什么优缺点？
+虚拟DOM本质就是用一个原生的JS对象去描述一个DOM节点 ，是 对真是DOM的一层抽象。
+
+### 优点
+- 保证性能下限：框架的虚拟DOM需要适配任何上层API可能产生的操作，它的一些DOM操作的实现必须是普适的，所以它的性能不是最优的；但是比起粗暴的DOM操作，性能要好很多，因此框架的 虚拟DOM至少可以保证在你不需要手动优化的情况下，依然可以提供不错的性能，即保证性能的下限。
+- 无需手动操作DOM
+- 跨平台：虚拟DOM本质上JavaScript对象，而DOM与平台是强相关，相比之下虚拟DOM可以进行更方便的跨平台操作，例如服务器渲染
+
+### 缺点
+- 无法进行极致的优化
+- 首次渲染大量的DOM时，由于多了一层虚拟DOM的计算，会比innerHTML插入慢
+
+## V-model的原理
+- v-model是一个语法糖
+- v-model在内部为不同的元素使用不同的property并抛出不同的时间
+- v-model可以使用model这个选项来自定义实现
+    ```
+    model: {
+        prop: name,
+        event: 'change'
+    }
+    ```
+- vue2中的v-model，默认是value+input
+- vue3中的v-model，默认是modelValue+update:modelValue
+
+## v-for为什么要加key
+如果不使用key，Vue会使用一种最大限度减少动态元素，并且尽可能的尝试就地修改/复用相同类型元素的算法。key是vue中vnode的唯一标记，通过这个key，我们的diff操作可以更准确快速
+
+- 更准确：因为key就不是就地复用了，在sameNode函数a.key === b.key对比中可以避免就地复用的情况。
+- 利用key的唯一性生成map对象来获取节点，比遍历的方式更快
+
+Vue源码中，会 判断两个VNode的标签和key是否相同，如果相同，就可以认为是同一个节点就地复用
+
+Vue源码中，会根据key来创建老的儿子的index映射表，类似{ 'a': 0, 'b': 1 }，代表key为'a'的节点在第一个位置，key为'b'的节点在第二个位置
+
+## Vue事件绑定原理
+原生事件绑定是通过`addEventListener`绑定给真实元素的，组件事件绑定是通过Vue自定义的`$on`实现的。如果要在组件上使用原生事件，需要加`.native`修饰符，这样就相当于在父组件中把子组件当做普通的HTML标签然后加上原生事件。
+
+`$on`、`$emit`是基于发布订阅模式的，维护一个事件中心，on的时候将事件名称存在事件中心，称之为订阅者，然后emit将对应的事件进行发布，执行事件中心里对应的监听器。
+
+## Vue-router路由钩子函数是什么？执行顺序是什么？
+
+### 路由钩子的类型
+- 全局守卫
+    - beforeEach
+    - afterEach
+    - beforeResolve
+- 路由守卫
+    - beforeEnter：它会紧跟在`beforeEach`之后触发
+- 组件守卫
+    - beforeRouteEneter：在`beforeEach`，`beforeEnter`之后执行，此时组件还没有解析完
+    - beforeRouteUpdate
+    - beforeRouteLeave
+
+### 完整的导航解析流程
+- 导航被触发
+- 在失活的组件里面调用`beforeRouteLeave`守卫
+- 调用全局的`beforeEach`守卫
+- 在重用的组件里面调用`beforeRouteUpdate`守卫
+- 在路由配置里调用`beforeEnter`守卫
+- 解析异步路由组件
+- 在被激活的组件里调用`beforeRouteEnter`守卫
+- 调用全局的`beforeResolve`守卫
+- 导航被确认
+- 调用全局的`afterEach`钩子
+- 触发DOM更新
+- 调用`beforeRouteEnter`守卫中传给next的回调函数，创建好的组件实例会作为回调函数的参数传入
+
+
+点击一个按钮触发页面跳转的时候，首先当前的页面会失活，调用`beforeRouteLeave`钩子
+
+要切换到一个新的页面了，就会调用全局的钩子`beforeEach`
+
+如果下一个要跳转到的页面，是可以重用的，那就调用`beforeRouteUpdate`更新的钩子
+
+紧接着调用路由独享守卫`beforeEnter`，这个时候路由还没有解析完成
+
+页面被激活了，那就会调用页面的`beforeRouteEnter`组件，这个时候还没有解析完成，还不能访问组件的实例，但是可以使用回调函数
+
+解析路由，全局的`beforeResolve`钩子被调用
+
+导航被确认之后，`afterEach`钩子调用
+
+创建组件实例完成，之前`beforeRouteEnter`中的回调函数执行，组件实例会作为回调函数的参数传入
+
+## Vue-router的动态路由是什么？有什么问题？
+我们经常需要把某种模式匹配到的所有路由，全都映射到同一个组件。例如，我们的user组件，对于所有ID各不相同的用户，都要使用这个组件来渲染。那么，我们可以在vue-router的路径中使用**动态的路径参数**来达到这个效果。
+
+**动态路径参数，以冒号开头**
+
+```
+routes: [
+    { path: '/user/:id', component: User }
+]
+```
+
+### vue-router中组件复用导致的路由参数失效怎么办？
+- 通过watch监听路由参数再发请求
+    ```
+    watch: {
+        '$route': function () {
+            this.getData(this.$route.params.xxx);
+        }
+    }
+    ```
+- 用`:key`来阻止复用
+    ```
+    <router-view :key="$route.fullPath"></router-view>
+    ```
+## Vuex为什么要分模块，并且加命名空间
+由于使用单一的状态树，应用的所有状态会集中到一个比较大的对象。当应用变得非常复杂时，store对象就有可能变得相当臃肿。为了解决以上问题，Vuex允许我们将store分隔成模块(module)。每个模块拥有自己的state、getters
+action、mutation、甚至是嵌套子模块。
+
+默认情况下，模块内部的action、mutation、getter是注册在全局命名空间的，这样使得多个模块能够对同一个mutation、action做出响应。如果希望你的模块具有更高的封装度和复用性，可以通过添加`namespaced: true`的方式使其成为带命名空间的模块。当模块被注册之后，它的所有getter、action、mutation都会自动根据模块注册的路径调整命名。
+
+## Vue中使用了哪些设计模式
+- 工厂模式：传入参数即可创建实例。虚拟DOM根据参数的不同返回基础标签的Vnode和组件Vnode
+- 单例模式：整个程序有且只有一个实例
+- 发布订阅模式（Vue的事件机制）
+- 观察者模式（响应式数据原理）
+- 装饰模式（@装饰器的用法）
+- 策略模式：策略模式指对象有某个行为，但是在不同的场景中，该行为有不同的实现方案，比如选项的合并策略
+
+## Vue.mixin的使用场景和原理
+使用vue的mixin功能抽离公共的业务逻辑，原理类似“对象的继承”，当组件初始化时，会调用mergeOptions方法进行合并，采用策略模式针对不同的属性进行合并。当组件和混入对象含有同名的选项时，这些选项将以恰当的方式进行“合并”
+
+## nextTick使用场景和原理
+nextTick中的回调是在下次DOM更新循环结束之后执行的延迟回调。
+
+主要思路就是采用微任务优先的方式调用异步方法去执行nextTick包装的方法。
+
+## keep-alive的使用场景和原理
+keep-alive是vue内置的一个组件，可以实现组件的缓存，当组件切换时，不会对当前组件进行卸载
+
+常用的两个属性：include / exclude，允许组件有条件的进行缓存。
+- include：要缓存的组件
+- exclude：要排除的组件
+- max：最大缓存数
+
+两个生命周期：activated / deactivated，用来得知当前组件是否处于活跃状态
+
+keep-alive中还运用了`LRU`（最近最少使用算法），选择最近最久未使用的组件予以淘汰
+- LRU算法是什么？
+    - 将新数据从尾部插入到`this.keys`中
+    - 每当缓存命中（即缓存数据被访问），则将数据移到`this.keys`的尾部
+    - 当`this.keys`满的时候，将头部的数据丢弃
+- `LUR的核心思想是`：如果数据最近被访问过，那么将来被访问的几率也更高，所以我们将命中缓存组件key重新插入到this.keys的尾部，这样一来，this.keys中越往头部即将来被访问几率越低，所以当缓存数量达到最大值时，我们就删除将来访问几率最低的数据，即this.keys中第一个缓存的组件。
+
+## Vue.set方法原理
+以下情况下修改数据，Vue是不会触发视图更新的
+- 在实例创建之后添加新的属性到实例上，（给响应式对象新增属性）
+- 直接更改数组下标来修改数组的值
+
+**Vue.set或者$set的原理如下**
+因为响应式数据，我们给对象和数组本身都增加了__ob__属性，代表的是Observer实例。
+
+当给对象新增不存在的属性，首先会把新的属性进行响应式跟踪，然后会触发对象的__ob__的dep收集到watcher去更新，当修改数组索引时，我们调用数组本身的splice方法去更新数组。
+
+## Vue.extend作用和原理
+Vue.extend使用基础Vue构造器，创建一个子类。参数是包含组件选项的对象。
+
+其实就是一个子类构造器，是Vue组件的核心API，实现思路就是使用原型继承的方法返回了Vue的子类，并且利用mergeOptions把传入组件的options和父类的options进行了合并。
+
+```
+export default function iniExtend(Vue) {
+    // 组件的唯一标识
+    let cid = 0;
+
+    // 创建子类 继承Vue父类，便于属性扩展
+    Vue.extend = function(extendOptions) {
+        // 创建子类的构造函数，并且调用初始化方法
+        const Sub = function VueComponent(options) {
+            // 调用Vue初始化方法
+            this._init(options);
+        }
+
+        Sub.cid = cid++;
+        // 子类原型指向父类
+        Sub.prototype = Object.create(this.prototype);
+        // constructor 指向自己
+        Sub.prototype.constructor = Sub;
+        // 合并自己的options和父类的options
+        Sub.options = mergeOptions(this.options, extendOptions);
+        return Sub;
+    }
+
+}
+```
+
+**每一个组件都是一个继承自Vue的子类，能够使用Vue的原型方法**
+
+## 自定义指令，原理是什么？
+指令本质上就是装饰器，是Vue对HTML元素的扩展，给HTML元素增加自定义的功能。vue编写dom时，会找到指令对象，执行指令的相关方法。
+
+### Vue2中的自定义指令钩子函数
+自定义指令有五个生命周期（也叫钩子函数）：
+- bind：只调用一次，指令第一次绑定到元素时调用。在这里可以进行一次性的初始化设置。
+- inserted：被绑定元素插入到父节点时调用（仅保证父节点存在，但不一定父节点已经被插入文档中）
+- update：被绑定元素所在的模板更新时调用，而无论绑定值是否变化。通过比较更新前后的绑定值，可以忽略不必要的模板更新。
+- componentUpdated：被绑定元素所在模板完成一次更新周期时调用
+- unbind：只调用一次，指令与元素解绑时调用
+
+
+### Vue3中自定义指令钩子函数
+- created：元素创建之后，但是属性和事件还没有生效时调用
+- beforeMount：仅调用一次，当指令第一次绑定元素的时候调用 `bind`
+- mounted：元素被插入父元素时调用 `inserted`
+- beforeUpdate：在元素自己更新之前调用
+- updated：元素或者子元素更新之后调用 `componentUpdated`
+- beforeUnmount：元素卸载前调用
+- unmounted：当指令卸载后调用，仅调用一次 `unbind`
+
+### 钩子函数的参数
+- el：指令绑定的元素，可以用来直接操作DOM
+- binding：数据对象，包含一下属性
+    - instance: 当前组件的实例 --- `vue3中获取组件实例的写法`
+    - value: 指令的值
+    - oldValue: 指令前一个值
+    - arg: 传给指令的参数，例如v-on:click中的click
+    - modifiers：包含修饰符的对象。例如v-on:stop:click可以获取到一个{ stop: true }的对象
+- vnode：Vue编译生成的节点
+- prevVNode：Update时的上一个虚拟节点
+
+- vue2中获取组件实例的写法：bind(el, binding, vnode) { const vm = vnode.context }
+- vue3中获取组件实例的写法：bind(el, binding, vnode) { const vm = binding.instance }
+
+### 自定义指令的原理
+- 在生成ast语法树时，遇到指令会给当前元素添加directives属性
+- 通过genDirectives生成指令代码
+- 在path前将指令的钩子提取到cbs中，在patch过程中调用了对应的钩子
+- 当执行指令对应的钩子函数时，调用对应指令定义的方法
+
+## Vue的修饰符有哪些
+
+### 事件修饰符
+- .stop：阻止事件继续传播
+- .prevent：阻止标签的默认行为
+- .capture：使用事件捕获模式。即元素自身触发的事 件现在此处处理，然后再交由内部元素进行处理
+- .self：只当在`event.target`是当前元素自身时触发处理函数
+- .once：事件将只会触发一次
+- .passive：告诉浏览器你不想阻止事件的默认行为
+### v-model的修饰符
+- .lazy：通过这个修饰符，转变为在change事件在同步
+- .number：自动将用户的输入值转换为数值类型
+- .trim：自动过滤用户输入的首尾空格
+### 键盘事件的修饰符
+- .enter
+- .tab
+- .delete（捕获删除或者空格键）
+- .esc
+- .space
+- .up
+- .down
+- .left
+- .right
+### 系统修饰符
+- .ctrl
+- .alt
+- .shift
+- .meta
+### 鼠标按钮修饰符
+- .left
+- .right
+- .niddle
+
+## Vue模板编译原理
+Vue的模板编译过程就是**将template转化为render函数**的过程，分为以下三步：
+- 第一步是将 模板字符串 转换成 element ASTs -- 解析器
+- 第二步是对 AST 进行进行静态标记，主要是用来做虚拟DOM的渲染优化 --- 优化器
+- 第三步是 使用 element ASTs 生成render函数代码字符串
+
+## Vue生命周期钩子是如何实现的
+Vue的生命周期钩子核心实现是利用发布订阅模式先把用户传入的生命 周期钩子订阅号（内部采用数组的方式存储），然后在创建组件实例的过程中会一次执行对应的钩子方法（发布）
+
+## Vue函数式组件使用场景和原理
+
+### 函数式组件和普通组件的区别
+- 函数式组件需要在声明组件时指定 `functional: true`
+- 不需要实例化，所以没有this，this通过render函数的第二个参数context来替代
+- 没有生命周期钩子函数，不能使用计算属性、watch
+- 不能通过$emit对外暴露事件，调用事件只能通过context.listeners.click的方式调用外部传入的事件
+- 因为函数式组件是没有实例化的，所以在外部通过ref去引用组件时，实际引用的是HTMLElement
+- 函数式组件的props可以不用显示的声明，所以在props里面声明属性都会被自动的隐式解析为props，而普通组件所有未声明的属性，都将解析到 $attrs 里面，并自动挂载到组件根元素上面
+
+### 函数式组件的优点
+- 函数式组件不需要实例化，无状态，没有生命周期，所以渲染性能要优于普通组件
+- 函数式组件结构比较简单，代码结构更加清晰
+
+### 函数式组件的使用场景
+- 一个简单地展示组件，作为容器组件使用，比如router-view就是一个函数式组件
+- “高阶组件” --- 用于接收一个组件作为参数，返回一个被包装过的组件
+
+## Vue-Router中常用的路由模式实现原理
+
+### hash模式
+- location.hash的值，实际就是URL中#后面的东西，它的特点在于：hash虽然出现在URL中，但不会被包含在HTTP请求中，对后端没有任何影响，因此改变hash的值不会重新加载页面
+
+- 可以为hash的改变添加监听事件
+    ```
+    window.addEventListener('hashChange', funcRef, false);
+    ```
+
+每一次改变hash（window.location.hash），都会在浏览器的访问历史中增加一个记录，利用hash以上的特点，就可以实现前端 路由“更新视图但不重新请求页面”的功能了。
+
+兼容性好，但是不美观
+
+### history模式
+利用了HTML5 History Interface中新增的`pushState()`和`replaceState()`方法。
+
+这两个方法应用于浏览器的历史记录栈，在当前已有的back、forward、go的基础上，他们提供了对历史记录进行修改的功能，这两个方法有个共同的特点：
+- 当调用他们修改浏览器历史记录栈后，虽然当前URL改变了，但浏览器不会刷新页面，这就为单页面应用前端路由“更新视图但不重新请求页面”提供了基础。
+
+虽然美观，但是刷新会出现404，需要后端配合进行配置
+
+## CSS单位
+
+## Vuex -> mapGetters等等（计算属性）
+
+
+https://juejin.cn/post/6867715946941775885
+
+https://juejin.cn/post/7004638318843412493#heading-20
+
+https://juejin.cn/post/7064351631072526350
+
+
+https://juejin.cn/post/7063970883227877390
+
+https://juejin.cn/post/6961222829979697165#heading-18
