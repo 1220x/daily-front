@@ -5,7 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vue响应式题目</title>
-    <script src="https://vuejs.org/js/vue.min.js"></script>
+    <!-- <script src="https://vuejs.org/js/vue.min.js"></script> -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 </head>
 <body>
     <div id="app">
@@ -21,8 +22,8 @@
             el: '#app',
             data() {
                 return {
-                    a: '原始的值 -- a',
-                    b: '原始的值 -- b'
+                    a: '原始的值 --> a --- 一个字符串',
+                    b: '原始的值 --> b --- 一个字符串'
                 }
             },
             methods: {
