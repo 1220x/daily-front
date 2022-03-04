@@ -116,4 +116,68 @@ TS通过`public`、`private`、`protected`三个修饰符来增强了JS中的类
 ### extends实现继承
 子类没有定义自己的属性时，在继承时可以不使用`super`，但是如果子类有自己的属性，那就必须用到`super`关键字把父类的属性继承过来。
 
+```
+class Person {
+    name: string
+
+    constructor(name: string) {
+        this.name = name;
+    }
+
+    speak() {
+        console.log(`my name is ${this.name}`);
+    }
+}
+
+class Student {
+    age: number
+
+    constructor(name, age) {
+        // super --- 将父类的属性继承过来；子类有自己的属性，但是没有使用super，就会报错
+        super(name);
+        this.age = age;
+    }
+
+    hello() {
+        console.log(123)
+    }
+}
+```
+
+### 多态
+子类对父类的方法进行了重写，子类和父类调用同一个方法时会不一样
+
+```
+class SubPerson extends Person {
+    age: number
+    constructor(name: string, age: number) {
+        super(name);
+        this.age = age;
+    }
+
+    // 直接重写父类的方法即可
+    speak() {
+        console.log('我是在子组件里面重写的speak方法。。。')
+    }
+}
+```
+
+### public
+公有的，一个类里默认所有的方法和属性都是public。`public`可写可不写，不写默认也是`public`
+
+### private
+私有的，只属于这个类自己，它的实例和继承它的子类都访问不到
+
+```
+class Person {
+    private name: string
+    constructor(name) {
+        this.name = name;
+    }
+}
+
+Person.name // 不会报错
+```
+### protected
+受保护的，继承它的子类可以访问，实例不能访问
 

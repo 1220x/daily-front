@@ -1570,7 +1570,11 @@ created() {
 - 循环出的是`value`
 
 ## 虚拟DOM是什么，有什么优缺点？
-虚拟DOM本质就是用一个原生的JS对象去描述一个DOM节点 ，是 对真是DOM的一层抽象。
+虚拟DOM本质就是用一个原生的JS对象去描述一个DOM节点 ，是对真实DOM的一层抽象。
+
+前端性能优化的一个秘诀就是尽可能少的操作DOM，不仅仅是DOM相对较慢，更因为频繁的操作DOM会造成浏览器的回流或重绘。其次，现代前端框架的一个基本要求就是无需手动操作DOM，一方面是因为手动操作DOM无法保证程序性能优化，多人协作项目中如果review不严格，可能会有开发者写出性能较低的代码，另一方面更重要的是省略手动DOM操作可以提升开发效率。最后，虚拟DOM最初的目的就是更好的跨平台，虚拟DOM本质就是一个JavaScript对象。
+
+虚拟DOM比较轻，真实DOM会比较重，虚拟DOM不需要真实DOM上那么多的属性
 
 ### 优点
 - 保证性能下限：框架的虚拟DOM需要适配任何上层API可能产生的操作，它的一些DOM操作的实现必须是普适的，所以它的性能不是最优的；但是比起粗暴的DOM操作，性能要好很多，因此框架的 虚拟DOM至少可以保证在你不需要手动优化的情况下，依然可以提供不错的性能，即保证性能的下限。
@@ -1909,6 +1913,7 @@ function shallowCopy(obj) {
 - object.assign
 - 扩展运算符实现的赋值
 - Array.proptotype.slice()、Array.prototype.concat()
+- lodash的_.clone方法
 
 ### 深拷贝
 深拷贝开辟 一个全新的栈，两个对象的属性完全相同，但是对应不同的地址，修改一个对象的属性，不会改变到另一个属性。
@@ -1919,7 +1924,29 @@ function shallowCopy(obj) {
     - 该方法会忽略`undefined`、`symbol`和`函数`
 - 手写循环递归
     ```
-    
+    function deepClone(obj, hash  = new WeakMap()) {
+        if (obj === null || obj === undefined) return;
+        if (obj instanceof Date) return new Date(obj);
+        if (obj instanceof RegExp) return new RegExp(obj);
+
+        // 基本类型的数据，直接返回
+        if (typeof obj !== 'obj') return obj;
+
+        // 引用类型的数据，先判断是否存在在hash中了
+        if (hash.get(obj)) return hash.get(obj);
+
+        let cloneObj = new obj.constructor();
+        hash.set(obj, cloneObj);
+
+        for (let key in obj) {
+            if (obj.hashOwnProperty(key)) {
+                // 递归的拷贝
+                cloneObj[key] = deepClone(obj[key]. hash);
+            }
+        }
+
+        return cloneObj;
+    }
     ```
 
 ## async await
@@ -1941,9 +1968,39 @@ function f() {
 
 ## 强引用、弱引用
 
-## CSS单位
+### 强引用
+如果我们将一个引用通过变量或者常量保存时，那么这个变量或者常量就是强引用。
 
-## Generator
+const user = { name: '123' }
+
+const user2 = user
+
+### 弱引用
+
+#### WeakSet
+- WeakSet.prototype.add(value)：向WeakSet实例添加一个新成员
+- WaekSet.prototype.delete(value)：清除WeakSet实例的指定成员
+- WeakSet.prototype.has(value)：返回一个布尔值，表示某个值是否在WeakSet实例之中
+- WeakSet的成员只能是对象，而不能是其他类型的值
+- WeakSet中的对象都是弱引用，即垃圾回收机制不考虑WeakSet对该对象的引用。也就是说，如果其他对象都不再引用该对象，那么垃圾回收机制会自动回收该对象所占用的内存，不考虑该对象还存在于WeakSet
+- WeakSet随时都有可能被垃圾回收掉，所以不支持遍历
+
+```
+let obj = {
+    name: '13'
+}
+
+let ws = new WeakSet();
+ws.add(obj);
+// 赋值为null，表示这个变量的内存可以被回收了
+obj = null;
+
+ws.has(obj); // false，这个变量被回收了，不存在了
+```
+#### WeakMap
+- WeakMap只能将对象作为键名（null除外），不接受其他类型的键名
+- WeakMap保持了对键名所引用的对象的弱引用，即垃圾回收机制不将该引用考虑在内。只要所引用的对象的其他引用都被清除，垃圾回收机制就会释放该对象所占用的内存。也就是说，一旦不在需要，WeakMap里面的键名对象和所对应的键值对会自动消失，不用手动删除引用。
+- WeakMap也是不可遍历的
 
 ## instanceof的原理
 A instanceof B 表示：判断A是不是B的实例
@@ -1952,6 +2009,39 @@ A instanceof B 表示：判断A是不是B的实例
 - 首先获取类型的原型 - B
 - 然后获取对象的原型 - A
 - 然后一直循环判断对象的原型是否等于类型的原型，直到对象原型为null，因为原型链最终为null
+
+```
+function myInstanceof(left, right) {
+
+}
+```
+
+## axios 拦截器执行顺序的源码解释
+Axios.prototype.request中会创建一个数组，`var chain = [dispatchRequest, undefined]`。后面添加的请求拦截器unshift到chain的左边，添加的响应拦截器push到chain的右边，所以执行顺序是：**请求拦截器 -- 发送请求的函数  -- 响应拦截器**
+
+## CSS单位
+
+### px
+像素。一张图片最小的一个点。
+
+### em
+参考物是父元素的`font-size`，具有继承的特点，如果自身定义了font-size，按自身来计算。一个页面上的1em不是一个固定值。
+
+### rem
+CSS3新单位，`相对于根元素HTML（网页）的font-size`，不会像em那样，依赖于父元素的字体大小，而造成混乱。
+### %
+
+### vw
+
+
+### vh
+
+
+### vm
+
+
+
+## Generator
 
 ## 箭头函数和普通函数的区别
 
@@ -1962,6 +2052,101 @@ A instanceof B 表示：判断A是不是B的实例
 ## proxy代理的原理（跨域）
 
 ## Vuex -> mapGetters等等（计算属性）
+
+## 介绍一下Vue？
+
+https://segmentfault.com/a/1190000012692321
+
+前端中通常需要通过JS代码来进行一些逻辑操作，最终还要把这些逻辑的结果显示在页面上，也就是需要频繁的操作DOM，MVVM（M-model数据模型，view视图，viewmodel视图模型）通过`数据双向绑定`让数据自动的双向同步。Vue也是一个这种MVVM模式的框架，不推荐开发人员手动操作DOM，但是VUE也没有完全遵循MVVM模型，我们还是可以使用$ref访问到DOM，使用VUE，我们可以不用想着怎么操作DOM，更多的去关注如果操作数据。
+
+使用Vue的时候，先在页面上指定一个元素，即需要听过Vue展示的内容都要放到这个元素中；
+
+new一个Vue的实例，传入`el`（el就是指定Vue实例挂载的目标，一个已经存在在页面上的DOM元素），`data`等选项。
+
+具体的可选项包括
+- el：Vue实例要挂载的目标，一个已经存在在页面上的DOM元素
+- data：Vue实例的数据对象，用于给View提供数据，需要先在data中声明数据，再使用数据。this.XXX的形式可以访问到数据
+    ```
+    var vm = new Vue({
+        el: '#app',
+        data: {
+            msg: 'message~~~'
+        }
+    })
+
+    vm.$data访问到data中的数据
+    ```
+- computed
+- props
+- mixins
+- watch
+- computed
+- beforeCreate
+- created
+- beforeMounte
+- mounted
+- beforeUpdate
+- updated
+- activated
+- deactivated
+- beforeDestory
+- destoryed
+- methods
+
+
+
+### Vue怎么实现MVVM的？
+
+数据绑定
+- 最常用的方式：`{{}}` --- 插值表达式
+
+双向数据绑定
+- 定义：将DOM与Vue实例的data数据绑定到一起，彼此之间相互影响：数据的改变影响到DOM，DOM的变化影响到数据
+- 原理：Object.definProperty中的get和set方法，指定读取或设置对象属性值的时候，执行的操作。
+- Vue在更新DOM时是异步执行的。只要侦听到数据变化，Vue将开启一个队列，并缓冲在同一事件循环中发生的所有数据变更，如果一个watcher被多次触发，只会被推入到队列中一次。然后在下一次事件循环tick中，Vue刷新队列并执行实际的工作。Vue在内部对异步队列使用原生的Promise.then、MutationObserver、setImmediate、setTimeout
+
+### Vue怎么把数据渲染到页面上（M --> V）
+在对应属性的set中，通过操作DOM，实现页面上的更新
+
+### Vue的模板编译原理
+如果需要在客户端编译模板（比如传入一个字符串给`template`选项，或挂载到一个元素上并以其DOM内部的HTML作为模板），就需要加上编译器
+
+如果使用了vue-loader，就可以使用vue.runtime.min.js，将模板编译的过程交给vue-loader，如果是在浏览器中直接通过script标签引入Vue，需要使用vue.min.js，在运行的时候编译模板。
+
+```
+// 需要编译器
+new Vue({
+    template: `<div>{{ hi }}</div>`
+})
+
+
+// 不需要编译器
+new Vue({
+    render(h) {
+        return h('div', this.hi)
+    }
+})
+```
+## webpack的原理
+webpack是一个现代JavaScript应用程序的静态模块打包器。当webpack处理应用程序时，它会递归的构建一个依赖关系，其中包含应用程序需要的每个模块，然后将所有这些模块打包成一个或多个bundle。
+## webpack的热更新原理
+热更新：`HMR (Hoy Module Replacement) 简称HMR`无需完全刷新整个页面的同时，更新模块。
+
+刷新：
+- 页面刷新：不保留 页面状态，就是简单粗暴，直接window.location.reload()。
+- 模块热更替：基于`WDS （webpack-dev-server）`的模块热替换，只需要局部刷新页面上发生变化的模块，同时可以保留当前页面状态，比如复选框选中状态、输入框的输入等。
+
+### 热更新实现的原理
+`webpack-dev-server`热更新配置
+
+webpack-dev-server启动本地服务，本地服务启动之后，再去启动`websocket`服务，通过websocket，可以建立本地服务和浏览器的双向通信，这样就可以实现当本地文件发生变化，立马告知浏览器可以热更新代码。
+
+热更新模块替换
+- 删除过期的模块，就是需要替换的模块
+- 将新的模块添加到modules中
+- 通过__webpack_require__执行相关模块的代码
+
+
 
 
 https://juejin.cn/post/6867715946941775885
