@@ -1722,8 +1722,23 @@ npm install -D ts-jest@26 @babel/preset-typescript @types/jest
     getCurrentInstance获取当前的实例 ; 对应的TS类型 - ComponnetIternalInstance
     import { getCurrentInstance } from 'vue';
 
+    export function useGlobalConfig() {
+        const instance:ComponentInternalInstance|null = getCurrentInstance();
+        if (!instance) {
+            console.log('useGlobalConfig必须得在setup里面整');
+            return;
+        }
+
+        return instance.appContext.config.globalProperties.$AILEMENTE || {}
+    }
     ```
 
+- jest.config.js文件增加配置
+    - collectCoverage: true // 表示需要收集代码测试覆盖率
+    - 以上配置之后，执行npm run test，根目录下会有coverage目录，index.html文件 打开之后会有报告
+
+- husky/pre-commit文件
+    - 增加npm run test命令，每次提交代码之前，都会先执行测试，测试通过才可以提交代码
 ## 表单组件
 
 ## 弹窗组件
