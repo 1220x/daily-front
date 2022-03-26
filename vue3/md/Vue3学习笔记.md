@@ -1564,6 +1564,8 @@ TypeScript可以进行类型编程，极大提高TypeScript在复杂场景下的
 
 ## 如果设计自己的通用组件库？
 
+**项目名称：vue-ts-ailemente**
+
 基础组件 + 数据组件 + 表单组件+ 通知组件
 ### 技术栈
 vite + TypeScript + Sass + ESLint
