@@ -1761,3 +1761,69 @@ npm install -D ts-jest@26 @babel/preset-typescript @types/jest
 
 ## 编译原理
 
+
+
+
+
+## 自定义渲染器
+渲染器是围绕虚拟DOM存在的。
+
+### 渲染器的创建
+
+runtime-core模块暴露的接口：createElement　createText insert    remote  setText patchProps等
+
+runtime-dom中传入以上方法的具体实现（不同平台的不同实现）
+
+### 渲染器的实现
+渲染到小程序平台：vue3-miniapp
+渲染到canvas：vue3-canvas
+
+**以canvas渲染器为例**
+将canvas维护成一个对象，每次操作的时候直接把canvas重绘一下就可以
+
+```
+import { createRender } from '@vue/runtime-core'
+
+const { createApp: originCa } = createRender({
+    insert: (child, parent, anchor) => {
+
+    },
+    createElement(type, isSVG, isCustom) {
+
+    },
+    setElementText(node, text) {
+
+    },
+    patchProp(el, key, prev, next) {
+
+    }
+})
+```
+
+每次直接更改对应的虚拟DOM，然后重绘。
+
+**自定义渲染器的原理：就是把所有的增删改查操作暴露出去，使用的时候不需要知道内部的实现细节，我们只需要针对每个平台使用不同的API即可。**
+
+适配器设计模式的一个实现。
+
+
+## vue2 VS vue3
+https://github.com/shengxinjing/vue3-vs-vue2.git
+
+
+## 响应式
+
+## 运行时
+
+## 虚拟DOM
+
+## 编译原理
+
+## vite原理
+
+## 数据流原理
+
+## 前端路由原理
+
+## 服务端渲染原理
+
